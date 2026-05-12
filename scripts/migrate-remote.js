@@ -11,7 +11,8 @@
  * Requires DATABASE_URL (optional copy in .env.local):
  *   postgresql://postgres:PASSWORD@db.<ref>.supabase.co:5432/postgres
  *
- * If IPv4 issues on your network, use the Session pooler URI from Supabase Connect instead.
+ * If you see ENOTFOUND, the direct db.* host may be IPv6-only on Supabase.
+ * Use the Session pooler URI from Dashboard → Connect (port 6543, host aws-0-….pooler.supabase.com).
  */
 
 const fs = require("fs");
@@ -85,6 +86,26 @@ function maskUrl(url) {
 }
 
 main().catch((err) => {
-  console.error(err.message || err);
+  const code = err && err.code;
+  const msg = err && err.message ? String(err.message) : String(err);
+  console.error(msg);
+  if (code === "ENOTFOUND" || code === "EAI_AGAIN" || /ENOTFOUND/i.test(msg)) {
+    console.error("");
+    console.error(
+      "DNS could not resolve the host, or Supabase returned only IPv6 and your network has no IPv6 route."
+    );
+    console.error(
+      "Fix: In Supabase → Project Settings → Database → Connection string, choose"
+    );
+    console.error(
+      "  “Session pooler” (or “URI” mode that uses aws-0-<region>.pooler.supabase.com:6543)."
+    );
+    console.error(
+      "  Use user format postgres.<project-ref> and your DB password — not the anon key."
+    );
+    console.error(
+      "Optional: set Windows DNS to 8.8.8.8 or test: nslookup <host> 8.8.8.8"
+    );
+  }
   process.exit(1);
 });

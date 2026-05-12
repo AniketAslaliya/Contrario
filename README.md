@@ -103,11 +103,13 @@ Migrations live under `supabase/migrations/` and must be applied once to **your 
 
    If Supabase warns about IPv4, use the **Session pooler** URI from the same Connect screen instead.
 
-3. From the repo root:
+3. From the **repository root** (`Contrario/`, not `scripts/`):
 
    ```bash
    npm run db:migrate
    ```
+
+**`getaddrinfo ENOTFOUND`** on `db.*.supabase.co`: that hostname is often **IPv6-only**. If your network has no IPv6 (or DNS fails), use Supabase Dashboard → **Connect** → **Session pooler** URI instead (host like `aws-0-<region>.pooler.supabase.com`, port **6543**, user **`postgres.<project-ref>`**). Put that full URI in `DATABASE_URL`.
 
 That runs each `*.sql` file in **`supabase/migrations/`** in sorted (chronological) order. Partial reruns may error if objects already exist; the SQL uses `IF NOT EXISTS` where possible.
 
