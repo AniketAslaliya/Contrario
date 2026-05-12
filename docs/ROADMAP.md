@@ -207,29 +207,29 @@ User Input → /api/analyze (POST)
 ---
 
 ### M11 · Deck Improvement Tracker
-**Status:** 🔲 Not started  
+**Status:** ✅ Complete  
 **Priority:** 🟡 P1  
 **Hours:** 2  
 **Description:** Compare v1 vs v2 of same pitch — show score delta per persona  
 **Acceptance Criteria:**
-- [ ] User can mark two analyses as "v1" and "v2" of same deck
-- [ ] Delta view shows: score change per persona, new concerns, resolved concerns
-- [ ] Visual progress bar per persona
-- [ ] "Most improved" highlight
+- [x] User picks two saved analyses on `/dashboard/compare` (baseline = v1, newer = v2)
+- [x] Delta view: score Δ per persona, key concern before/after, new vs resolved consensus red flags (from synthesis)
+- [x] Progress bars per persona (v1 vs v2 score width)
+- [x] “Most improved lens” badge (largest positive score delta)
 
 ---
 
 ### M12 · Shareable Report Link
-**Status:** 🔲 Not started  
+**Status:** ✅ Complete  
 **Priority:** 🟡 P1  
 **Hours:** 1.5  
 **Description:** Generate a public URL for any analysis that can be shared with mentors/co-founders  
 **Acceptance Criteria:**
-- [ ] "Share" button on analysis page
-- [ ] Generates unique slug URL (contrario.app/r/[slug])
-- [ ] Public view shows full analysis without requiring login
-- [ ] Optional: password-protect the link
-- [ ] Link has expiry option (7 days / 30 days / permanent)
+- [x] Share panel on saved analysis detail (`ShareReportTools` + `createShareReportAction`)
+- [x] Unique slug URL — `/r/[slug]` (hex slug)
+- [x] Public view shows full analysis (`AnalysisReplay` with `publicView`) — no login required
+- [ ] Password-protect — not implemented (optional in PRD)
+- [x] Expiry: 7d / 30d / never (`shared_reports.expires_at`)
 
 ---
 

@@ -39,7 +39,7 @@ export default async function SavedAnalysisPage({
 
   return (
     <main className="relative min-h-screen flex flex-col items-center px-6 py-16 md:py-20">
-      <AnalysisReplay analysis={row} />
+      <AnalysisReplay analysis={row} showShare />
       <div className="mt-12 text-center">
         <Link href="/analyze" className="btn-secondary inline-block">
           New analysis

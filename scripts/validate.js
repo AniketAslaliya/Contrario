@@ -464,6 +464,32 @@ const validators = {
     warn("Manually test: past analyses listed, click opens full analysis, empty state shown");
   },
 
+  M11: () => {
+    header("M11 · Deck Improvement Tracker");
+    check(
+      fileExists("lib/deck-compare.ts") || fileExists("lib/deck-compare.js"),
+      "deck-compare module exists",
+      "lib/deck-compare.ts MISSING"
+    );
+    check(
+      fileExists("app/dashboard/compare/page.tsx") ||
+        fileExists("app/dashboard/compare/page.jsx"),
+      "Compare two runs route exists",
+      "app/dashboard/compare/page.tsx MISSING"
+    );
+    check(
+      fileContains("lib/deck-compare.ts", "compareDeckAnalyses"),
+      "compareDeckAnalyses() implemented",
+      "M11: add compareDeckAnalyses in lib/deck-compare.ts"
+    );
+    check(
+      fileContains("components/dashboard/DeckCompareView.tsx", "DeckCompareView"),
+      "DeckCompareView UI exists",
+      "components/dashboard/DeckCompareView.tsx MISSING"
+    );
+    warn("Manually test: two analyses → score bars + key concern diff + red flag diff");
+  },
+
   M12: () => {
     header("M12 · Shareable Report Link");
     check(
@@ -472,6 +498,22 @@ const validators = {
         fileExists("app/report/[slug]/page.tsx"),
       "Public report route exists",
       "Public report route MISSING — create app/r/[slug]/page.tsx"
+    );
+    check(
+      fileExists("lib/shared-report-store.ts") ||
+        fileExists("lib/shared-report-store.js"),
+      "Shared report store exists",
+      "lib/shared-report-store.ts MISSING"
+    );
+    check(
+      fileContains("app/dashboard/share-report-action.ts", "createShareReportAction"),
+      "createShareReportAction server action exists",
+      "app/dashboard/share-report-action.ts MISSING"
+    );
+    check(
+      fileContains("components/dashboard/ShareReportTools.tsx", "ShareReportTools"),
+      "Share UI on analysis detail",
+      "components/dashboard/ShareReportTools.tsx MISSING"
     );
     warn("Manually test: link works without login, shows full analysis, expiry works");
   },

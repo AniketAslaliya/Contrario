@@ -114,6 +114,8 @@ See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the full breakdown. Current priorit
 - [x] M08: Consensus red flags
 - [x] M09: Per-slide breakdown
 - [x] M10: Dashboard session history
+- [x] M11: Deck improvement tracker
+- [x] M12: Shareable report link
 
 ---
 

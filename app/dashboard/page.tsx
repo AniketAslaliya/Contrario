@@ -42,10 +42,15 @@ export default async function DashboardPage() {
             full persona write-ups, conflict map, and red flags.
           </p>
 
-          <div className="flex justify-center gap-4 mb-10">
+          <div className="flex flex-wrap justify-center gap-4 mb-10">
             <Link href="/analyze" className="btn-primary text-center">
               New analysis
             </Link>
+            {rows.length >= 2 ? (
+              <Link href="/dashboard/compare" className="btn-secondary text-center">
+                Compare two runs
+              </Link>
+            ) : null}
             <Link href="/settings" className="btn-secondary text-center">
               Account
             </Link>

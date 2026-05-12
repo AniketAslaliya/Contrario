@@ -55,6 +55,8 @@ The conflict map IS the product. That's the insight no competitor has.
 | M08 Red Flags Summary | ✅ Done | `RedFlagsSummary` · max 3 consensus rows with fixes |
 | M09 Per-Slide Breakdown | ✅ Done | `lib/slide-split` · optional slide map + **Per slide** persona sections |
 | M10 Session History | ✅ Done | Supabase `analyses` · `/dashboard` list · `/dashboard/analysis/[id]` replay |
+| M11 Deck Improvement | ✅ Done | `/dashboard/compare` · `lib/deck-compare` · `DeckCompareView` |
+| M12 Shareable link | ✅ Done | `shared_reports` · `/r/[slug]` · expiry 7/30/never |
 
 ---
 
@@ -193,6 +195,11 @@ NEXT_PUBLIC_SUPABASE_DECK_BUCKET=deck-uploads
 ### Session 009 — May 12, 2026
 - **Done:** M09 (slide detection + slide map in prompts + optional **Per slide** output) · M10 (`analyses` migration, `lib/analysis-store`, `saveAnalysisAction` for founder/student/angel, dashboard history + detail replay). `PdfUpload` stores `fileName` for titles. `.env.example` cleared of real Gemini key — use `.env.local` only; user should **rotate** any key that was committed.
 - **Next:** Run `analyses` migration in Supabase SQL editor; verify history save end-to-end when signed in as founder.
+
+### Session 010 — May 12, 2026
+- **Done:** M11 (`lib/deck-compare`, `/dashboard/compare`, `DeckCompareView`, `ComparePicker`, `extractKeyConcernFromMarkdown`) · M12 (`shared_reports` migration, `lib/shared-report-store`, `createShareReportAction`, `ShareReportTools` on analysis detail, public `app/r/[slug]/page.tsx`). Dashboard link to compare when ≥2 saves.
+- **Next:** Apply `20260514000000_shared_reports.sql` in Supabase (alongside `analyses` if not yet run).
+- **Blockers:** None beyond running SQL migrations.
 
 ---
 

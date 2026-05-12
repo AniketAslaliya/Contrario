@@ -10,6 +10,15 @@ export function extractScoreFromMarkdown(md: string): string | null {
   return String(n);
 }
 
+/** Body of the ## Key concern section (trimmed, single block). */
+export function extractKeyConcernFromMarkdown(md: string): string {
+  const m = md.match(
+    /##\s*Key concern\s*\n+([\s\S]*?)(?=\n##\s|\n?$)/i
+  );
+  if (!m || !m[1]) return "";
+  return m[1].trim().replace(/\s+/g, " ").slice(0, 600);
+}
+
 /** Mean of available persona scores (1–10); null if none parsed. */
 export function averageScoreFromOutputs(
   outputs: Record<PersonaId, string>

@@ -5,13 +5,20 @@ import type { AnalysisRow } from "@/lib/analysis-store";
 import { ConflictMap } from "@/components/conflict-map/ConflictMap";
 import { RedFlagsSummary } from "@/components/RedFlagsSummary";
 import { PersonaStreamColumn } from "@/components/persona-card/PersonaStreamColumn";
+import { ShareReportTools } from "@/components/dashboard/ShareReportTools";
 import type { PersonaId } from "@/lib/personas";
 import { PERSONA_IDS } from "@/lib/personas";
 import { extractScoreFromMarkdown } from "@/lib/parse-persona-output";
 
-type Props = { analysis: AnalysisRow };
+type Props = {
+  analysis: AnalysisRow;
+  /** Share panel on authenticated detail view. */
+  showShare?: boolean;
+  /** Hide account nav — public /r/[slug] view. */
+  publicView?: boolean;
+};
 
-export function AnalysisReplay({ analysis }: Props) {
+export function AnalysisReplay({ analysis, showShare, publicView }: Props) {
   const scores: Record<PersonaId, string | null> = {
     "scale-chaser": null,
     "conviction-buyer": null,
@@ -28,10 +35,10 @@ export function AnalysisReplay({ analysis }: Props) {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
         <div>
           <Link
-            href="/dashboard"
+            href={publicView ? "/" : "/dashboard"}
             className="text-xs text-ink-400 hover:text-ink mb-2 inline-block"
           >
-            ← Analysis history
+            {publicView ? "← Contrario" : "← Analysis history"}
           </Link>
           <h1 className="font-serif text-3xl md:text-4xl text-ink tracking-tight">
             {analysis.title}
@@ -55,6 +62,12 @@ export function AnalysisReplay({ analysis }: Props) {
           </p>
         </div>
       </div>
+
+      {showShare && !publicView ? (
+        <div className="mb-8 max-w-xl mx-auto">
+          <ShareReportTools analysisId={analysis.id} />
+        </div>
+      ) : null}
 
       {analysis.input_preview ? (
         <section className="mb-10 rounded-2xl border border-cream-400 bg-cream-100/50 p-4 md:p-5">
