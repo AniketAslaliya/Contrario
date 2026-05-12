@@ -59,26 +59,6 @@ export default function LandingPage() {
           HERO SECTION
           ============================================ */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-28 pb-16">
-        {/* Social proof badge */}
-        <div
-          className={`transition-all duration-700 ${
-            mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-          }`}
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <div className="flex -space-x-1">
-              {["★", "★", "★", "★", "★"].map((s, i) => (
-                <span key={i} className="text-persona-conviction text-sm">
-                  {s}
-                </span>
-              ))}
-            </div>
-          </div>
-          <p className="text-center text-[11px] uppercase tracking-[0.18em] text-ink-400 mb-8">
-            Multi-lens pitch reads for founders
-          </p>
-        </div>
-
         {/* Main Heading */}
         <h1
           className={`text-center text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] xl:text-[6.5rem] leading-[1.05] tracking-tight max-w-5xl mx-auto mb-8 transition-all duration-900 delay-100 ${
