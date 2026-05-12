@@ -88,6 +88,16 @@ node scripts/validate.js
    - Optional: `NEXT_PUBLIC_SUPABASE_DECK_BUCKET`, `CONTRARIO_API_KEY`, `CONTRARIO_ADMIN_EMAILS`
 4. Deploy. Long-running **`/api/analyze`** relies on exported `maxDuration` in route handlers; use a Vercel plan that supports the duration you need.
 
+### Live deploy (CLI-linked project)
+
+If you use `npx vercel link`, production may be served at **`https://contrario-app.vercel.app`** (check your Vercel dashboard). Set **`NEXTAUTH_URL`** to that exact HTTPS URL in Vercel → Settings → Environment Variables, and add the same origin + `/api/auth/callback/google` under **Google Cloud → OAuth redirect URIs**.
+
+### Supabase database security (not a bug)
+
+Contrario talks to Postgres **only from the server** via **`SUPABASE_SERVICE_ROLE_KEY`**. That role **bypasses RLS**. Tables have **RLS enabled and no policies**, so requests using the **anon** or **authenticated** (user JWT) keys get **no access** by default — which is what you want if the browser never queries these tables directly.
+
+The Supabase linter may report [RLS enabled, no policies](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) as **INFO**. That matches this pattern. If you later read/write from the browser with the user’s JWT, you must add explicit RLS policies.
+
 ### Supabase (cloud migrations)
 
 Migrations live under `supabase/migrations/` and must be applied once to **your hosted** Supabase Postgres. **Do not paste your DB password into chat.**
@@ -120,6 +130,7 @@ That runs each `*.sql` file in **`supabase/migrations/`** in sorted (chronologic
 3. `20260514000000_shared_reports.sql`
 4. `20260515000000_m14_m25_platform.sql`
 5. `20260515100000_analyses_starred.sql`
+6. `20260516100000_org_fk_indexes.sql`
 
 **Optional:** [Supabase CLI](https://supabase.com/docs/guides/cli) with a linked project or `--db-url` (same credential rules — keep it local).
 
