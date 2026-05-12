@@ -2,6 +2,7 @@
 
 import type { PersonaId } from "@/lib/personas";
 import { displayNameForPersona } from "@/lib/personas";
+import ReactMarkdown from "react-markdown";
 
 const accent: Record<PersonaId, string> = {
   "scale-chaser": "border-l-persona-scale",
@@ -9,10 +10,12 @@ const accent: Record<PersonaId, string> = {
   "reality-check": "border-l-persona-reality",
 };
 
+export type PersonaStreamStatus = "idle" | "streaming" | "done";
+
 type Props = {
   id: PersonaId;
   text: string;
-  streaming: boolean;
+  status: PersonaStreamStatus;
   error?: string | null;
   score?: string | null;
 };
@@ -20,10 +23,13 @@ type Props = {
 export function PersonaStreamColumn({
   id,
   text,
-  streaming,
+  status,
   error,
   score,
 }: Props) {
+  const show = text.trim().length > 0;
+  const showCursor = status === "streaming";
+
   return (
     <div
       className={`rounded-2xl border border-cream-400 bg-cream-100/70 p-4 text-left border-l-4 ${accent[id]}`}
@@ -41,10 +47,26 @@ export function PersonaStreamColumn({
       {error ? (
         <p className="text-sm text-persona-scale">{error}</p>
       ) : (
-        <div className="prose prose-sm max-w-none text-ink-600">
-          <pre className="whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-ink-600 bg-transparent p-0 m-0">
-            {text || (streaming ? "…" : "—")}
-          </pre>
+        <div className="prose prose-stone prose-sm max-w-none text-ink-700 leading-relaxed">
+          {show ? (
+            <>
+              <ReactMarkdown>{text}</ReactMarkdown>
+              {showCursor ? (
+                <span
+                  className="inline-block w-1.5 h-4 bg-ink-600 opacity-70 animate-pulse ml-0.5 align-middle"
+                  aria-hidden
+                />
+              ) : null}
+            </>
+          ) : (
+            <p className="text-[13px] m-0 text-ink-500">
+              {status === "streaming" ? (
+                <span className="inline-block w-1.5 h-4 bg-ink-500 opacity-70 animate-pulse align-middle" />
+              ) : (
+                "—"
+              )}
+            </p>
+          )}
         </div>
       )}
     </div>

@@ -5,7 +5,7 @@ export default function ApiDocsPage() {
     <main className="relative min-h-screen px-6 py-16 md:py-24 max-w-3xl mx-auto">
       <h1 className="font-serif text-4xl text-ink mb-2">API</h1>
       <p className="text-ink-500 text-sm mb-10">
-        Accelerator integrations (M25) — stream-only analyze endpoint.
+        Accelerator integrations — stream-only analyze endpoint.
       </p>
 
       <section className="space-y-4 text-sm text-ink-700 leading-relaxed">

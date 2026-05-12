@@ -82,11 +82,11 @@ function envRaw(key) {
   return match ? match[1].trim() : "";
 }
 
-/** Mirrors lib/ai-provider.ts — default is gemini when unset. */
+/** Mirrors lib/ai-provider.ts — default is Anthropic when unset. */
 function activeAiBackend() {
   const raw = envRaw("AI_PROVIDER").toLowerCase();
-  if (raw === "anthropic" || raw === "claude") return "anthropic";
-  return "gemini";
+  if (raw === "gemini" || raw === "google") return "gemini";
+  return "anthropic";
 }
 
 function fetchUrl(url, timeout = 5000) {
@@ -292,16 +292,17 @@ const validators = {
     );
 
     const backend = activeAiBackend();
-    check(
-      envExists("GEMINI_API_KEY"),
-      "GEMINI_API_KEY is set (primary LLM for this phase)",
-      "GEMINI_API_KEY MISSING — add from https://aistudio.google.com/apikey"
-    );
-    if (backend === "anthropic") {
+    if (backend === "gemini") {
+      check(
+        envExists("GEMINI_API_KEY"),
+        "GEMINI_API_KEY is set (AI_PROVIDER=gemini)",
+        "GEMINI_API_KEY MISSING — add from https://aistudio.google.com/apikey or switch AI_PROVIDER back to anthropic"
+      );
+    } else {
       check(
         envExists("ANTHROPIC_API_KEY"),
-        "ANTHROPIC_API_KEY is set (AI_PROVIDER=anthropic)",
-        "ANTHROPIC_API_KEY MISSING — required when using Claude, or set AI_PROVIDER=gemini"
+        "ANTHROPIC_API_KEY is set (default backend)",
+        "ANTHROPIC_API_KEY MISSING — add from Anthropic Console, or set AI_PROVIDER=gemini + GEMINI_API_KEY"
       );
     }
     check(
@@ -735,16 +736,17 @@ async function preDeployChecks() {
   envVars.forEach((v) => check(envExists(v), `${v} is set`, `${v} MISSING`));
 
   header("AI provider (see lib/ai-provider.ts)");
-  check(
-    envExists("GEMINI_API_KEY"),
-    "GEMINI_API_KEY is set (required for current phase)",
-    "GEMINI_API_KEY MISSING — https://aistudio.google.com/apikey"
-  );
-  if (activeAiBackend() === "anthropic") {
+  if (activeAiBackend() === "gemini") {
+    check(
+      envExists("GEMINI_API_KEY"),
+      "GEMINI_API_KEY is set (AI_PROVIDER=gemini)",
+      "GEMINI_API_KEY MISSING — https://aistudio.google.com/apikey"
+    );
+  } else {
     check(
       envExists("ANTHROPIC_API_KEY"),
-      "ANTHROPIC_API_KEY is set",
-      "ANTHROPIC_API_KEY MISSING — required when AI_PROVIDER=anthropic"
+      "ANTHROPIC_API_KEY is set (default: Anthropic)",
+      "ANTHROPIC_API_KEY MISSING — https://console.anthropic.com/ or set AI_PROVIDER=gemini"
     );
   }
 

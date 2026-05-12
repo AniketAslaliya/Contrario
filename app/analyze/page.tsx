@@ -13,7 +13,7 @@ export default function AnalyzePage() {
         </h1>
         <p className="text-ink-400 text-base leading-relaxed">
           Upload a PDF or paste your narrative — we extract and stream three
-          investor personas in parallel (M06).
+          investor personas simultaneously.
         </p>
         <Link
           href="/"

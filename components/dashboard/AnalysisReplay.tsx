@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { AnalysisRow } from "@/lib/analysis-store";
+import { synthesisPayloadToMarkdown } from "@/lib/synthesis/format-synthesis-markdown";
 import { ConflictMap } from "@/components/conflict-map/ConflictMap";
 import { RedFlagsSummary } from "@/components/RedFlagsSummary";
 import { PersonaStreamColumn } from "@/components/persona-card/PersonaStreamColumn";
@@ -185,7 +186,7 @@ export function AnalysisReplay({
               key={id}
               id={id}
               text={analysis.persona_outputs[id] ?? ""}
-              streaming={false}
+              status="done"
               error={null}
               score={scores[id]}
             />
@@ -195,7 +196,9 @@ export function AnalysisReplay({
 
       {!triageMode && analysis.synthesis ? (
         <>
-          <ConflictMap data={analysis.synthesis.conflictMap} visible />
+          <ConflictMap
+            synthesis={synthesisPayloadToMarkdown(analysis.synthesis)}
+          />
           <RedFlagsSummary flags={analysis.synthesis.redFlags} visible />
         </>
       ) : null}

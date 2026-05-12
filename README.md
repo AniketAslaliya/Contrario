@@ -5,7 +5,7 @@
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
 ![Status](https://img.shields.io/badge/status-active--development-brightgreen)
-![Stack](https://img.shields.io/badge/stack-Next.js%2014%20%7C%20Gemini%20%7C%20Supabase-blueviolet)
+![Stack](https://img.shields.io/badge/stack-Next.js%2014%20%7C%20Claude%20%7C%20Supabase-blueviolet)
 
 ---
 
@@ -44,7 +44,7 @@ Contrario fires **three investor archetypes simultaneously** against your pitch 
 | Layer | Technology |
 |---|---|
 | Framework | Next.js 14 (App Router) |
-| AI Engine | **Gemini** (`GEMINI_API_KEY` required for current phase); Anthropic optional via `AI_PROVIDER=anthropic` |
+| AI Engine | **Anthropic Claude** (`claude-sonnet-4-20250514` via `ANTHROPIC_API_KEY`); optional **Gemini** with `AI_PROVIDER=gemini` + `GEMINI_API_KEY` |
 | Styling | Tailwind CSS |
 | Auth | NextAuth.js |
 | Database | Supabase |
@@ -84,7 +84,7 @@ node scripts/validate.js
    - `NEXTAUTH_SECRET`, `NEXTAUTH_URL` (Production must be `https://<your-domain>`)
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (email magic link: enable **Email** in Supabase Auth; add redirect `https://<your-domain>/auth/callback`)
    - Optional: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (only if you want “Sign in with Google”)
-   - `GEMINI_API_KEY`, optional `GEMINI_MODEL`, optional `AI_PROVIDER`
+   - `ANTHROPIC_API_KEY`, optional `ANTHROPIC_MODEL` (default `claude-sonnet-4-20250514`); optional `AI_PROVIDER=gemini` + `GEMINI_API_KEY` + `GEMINI_MODEL` if you use Google instead of the default Anthropic backend
    - Optional: `NEXT_PUBLIC_SUPABASE_DECK_BUCKET`, `CONTRARIO_API_KEY`, `CONTRARIO_ADMIN_EMAILS`
    - Optional: `PDF_UPLOAD_MAX_BYTES` — lower than the default ~10MB cap when your host limits request size (Vercel ~4.5MB); see `.env.example`
 4. Deploy. Long-running **`/api/analyze`** relies on exported `maxDuration` in route handlers; use a Vercel plan that supports the duration you need.
@@ -152,7 +152,7 @@ That runs each `*.sql` file in **`supabase/migrations/`** in sorted (chronologic
 contrario/
 ├── app/              # Next.js App Router pages
 ├── components/       # Reusable UI components
-├── lib/              # Core logic (Gemini/Anthropic, personas, PDF parser)
+├── lib/              # Core logic (Anthropic/Gemini, personas, PDF parser)
 ├── docs/             # PRD, ROADMAP, CONTEXT (read these first)
 └── scripts/          # Validation and utility scripts
 ```

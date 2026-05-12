@@ -93,7 +93,7 @@ export function BatchUploadClient() {
       ) : null}
 
       <p className="text-xs text-ink-400 leading-relaxed">
-        Decks are processed one after another (M15). Each successful extract updates
+        Decks are processed one after another. Each successful extract updates
         session storage so the next step opens on Analyze with the last deck loaded.
         For a full queue product, wire each row to a persisted job.
       </p>

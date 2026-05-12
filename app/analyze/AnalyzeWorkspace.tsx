@@ -12,6 +12,7 @@ import {
   STORAGE_PENDING_TEXT,
 } from "@/lib/analyze-input";
 import type { SynthesisPayload } from "@/lib/synthesis/post-analysis";
+import { synthesisPayloadToMarkdown } from "@/lib/synthesis/format-synthesis-markdown";
 import {
   averageScoreFromOutputs,
   extractScoreFromMarkdown,
@@ -22,6 +23,7 @@ import { detectSlidesFromPitch } from "@/lib/slide-split";
 import { saveAnalysisAction } from "@/app/analyze/save-analysis-action";
 import { ConflictMap } from "@/components/conflict-map/ConflictMap";
 import { RedFlagsSummary } from "@/components/RedFlagsSummary";
+import type { PersonaStreamStatus } from "@/components/persona-card/PersonaStreamColumn";
 import { PersonaStreamColumn } from "@/components/persona-card/PersonaStreamColumn";
 import { PdfUpload } from "@/components/upload/PdfUpload";
 import { TextInput } from "@/components/upload/TextInput";
@@ -32,6 +34,24 @@ const emptyOutputs = (): Record<PersonaId, string> => ({
   "scale-chaser": "",
   "conviction-buyer": "",
   "reality-check": "",
+});
+
+const idlePersonaStatus = (): Record<PersonaId, PersonaStreamStatus> => ({
+  "scale-chaser": "idle",
+  "conviction-buyer": "idle",
+  "reality-check": "idle",
+});
+
+const streamingPersonaStatus = (): Record<PersonaId, PersonaStreamStatus> => ({
+  "scale-chaser": "streaming",
+  "conviction-buyer": "streaming",
+  "reality-check": "streaming",
+});
+
+const donePersonaStatus = (): Record<PersonaId, PersonaStreamStatus> => ({
+  "scale-chaser": "done",
+  "conviction-buyer": "done",
+  "reality-check": "done",
 });
 
 const emptyErrs = (): Record<PersonaId, string | null> => ({
@@ -74,16 +94,26 @@ function readPendingMeta(): { title: string; source: "paste" | "pdf" } {
 export function AnalyzeWorkspace() {
   const { status } = useSession();
   const [tab, setTab] = useState<Tab>("pdf");
-  const [running, setRunning] = useState(false);
-  const [outputs, setOutputs] = useState(emptyOutputs);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [personaOutputs, setPersonaOutputs] = useState(emptyOutputs);
+  const [personaStatus, setPersonaStatus] = useState(idlePersonaStatus);
   const [err, setErr] = useState(emptyErrs);
   const [banner, setBanner] = useState<string | null>(null);
   const [inputRev, setInputRev] = useState(0);
   const [guestRev, setGuestRev] = useState(0);
-  const [synthesis, setSynthesis] = useState<SynthesisPayload | null>(null);
+  const [synthesisPayload, setSynthesisPayload] =
+    useState<SynthesisPayload | null>(null);
   const [synthesisError, setSynthesisError] = useState<string | null>(null);
   const [slideHint, setSlideHint] = useState<number | null>(null);
   const [indiaMode, setIndiaMode] = useState(false);
+
+  const synthesisMarkdown = useMemo(
+    () =>
+      synthesisPayload
+        ? synthesisPayloadToMarkdown(synthesisPayload)
+        : null,
+    [synthesisPayload]
+  );
 
   useEffect(() => {
     try {
@@ -101,10 +131,10 @@ export function AnalyzeWorkspace() {
       "reality-check": null,
     };
     for (const id of PERSONA_IDS) {
-      s[id] = extractScoreFromMarkdown(outputs[id]);
+      s[id] = extractScoreFromMarkdown(personaOutputs[id]);
     }
     return s;
-  }, [outputs]);
+  }, [personaOutputs]);
 
   const guestBlocked = useMemo(() => {
     void guestRev;
@@ -154,10 +184,11 @@ export function AnalyzeWorkspace() {
       return;
     }
 
-    setRunning(true);
-    setOutputs(emptyOutputs());
+    setIsAnalyzing(true);
+    setPersonaOutputs(emptyOutputs());
+    setPersonaStatus(streamingPersonaStatus());
     setErr(emptyErrs());
-    setSynthesis(null);
+    setSynthesisPayload(null);
     setSynthesisError(null);
     setSlideHint(null);
 
@@ -166,7 +197,7 @@ export function AnalyzeWorkspace() {
       setSlideHint(slideOutline.length);
     }
 
-    const localOut = emptyOutputs();
+    const localOutputs = emptyOutputs();
     let localSynthesis: SynthesisPayload | null = null;
 
     try {
@@ -181,79 +212,85 @@ export function AnalyzeWorkspace() {
       });
 
       if (!res.ok) {
-        const j = (await res.json().catch(() => ({}))) as { error?: string };
-        setBanner(j.error || `Request failed (${res.status})`);
-        setRunning(false);
-        return;
+        const errJson = await res.json().catch(() => ({
+          error: "Unknown error",
+        }));
+        throw new Error(
+          typeof (errJson as { error?: string }).error === "string"
+            ? (errJson as { error: string }).error
+            : "Analysis failed"
+        );
       }
 
-      const reader = res.body?.getReader();
-      if (!reader) {
-        setBanner("No response stream.");
-        setRunning(false);
-        return;
-      }
-
-      const dec = new TextDecoder();
-      let carry = "";
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
 
       while (true) {
         const { done, value } = await reader.read();
-        if (value) {
-          carry += dec.decode(value, { stream: true });
-        }
-        const blocks = carry.split("\n\n");
-        carry = blocks.pop() ?? "";
-
-        for (const block of blocks) {
-          if (!block.trimStart().startsWith("data:")) continue;
-          const line = block.replace(/^[\s\r\n]*data:\s*/i, "").trim();
-          if (line === "[DONE]") continue;
-          let payload: Record<string, unknown>;
-          try {
-            payload = JSON.parse(line) as Record<string, unknown>;
-          } catch {
-            continue;
-          }
-
-          if (payload.synthesis && typeof payload.synthesis === "object") {
-            const syn = payload.synthesis as SynthesisPayload;
-            localSynthesis = syn;
-            setSynthesis(syn);
-          }
-          if (typeof payload.synthesisError === "string") {
-            setSynthesisError(payload.synthesisError);
-          }
-
-          const pid = payload.persona as string | undefined;
-          if (!pid || !isPersonaId(pid)) continue;
-
-          if (typeof payload.delta === "string") {
-            localOut[pid] = (localOut[pid] || "") + payload.delta;
-            setOutputs((o) => ({
-              ...o,
-              [pid]: (o[pid] || "") + payload.delta,
-            }));
-          }
-          if (payload.error) {
-            setErr((e) => ({
-              ...e,
-              [pid]: String(payload.error),
-            }));
-          }
-        }
-
         if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data:")) continue;
+          const raw = line.slice(5).trim();
+          if (!raw || raw === "[DONE]") continue;
+          try {
+            const event = JSON.parse(raw) as Record<string, unknown>;
+
+            if (event.synthesis && typeof event.synthesis === "object") {
+              const syn = event.synthesis as SynthesisPayload;
+              localSynthesis = syn;
+              setSynthesisPayload(syn);
+            }
+            if (typeof event.synthesisError === "string") {
+              setSynthesisError(event.synthesisError);
+            }
+
+            const pid = event.persona as string | undefined;
+            if (pid && isPersonaId(pid)) {
+              if (typeof event.delta === "string") {
+                localOutputs[pid] =
+                  (localOutputs[pid] ?? "") + event.delta;
+                setPersonaOutputs((prev) => ({
+                  ...prev,
+                  [pid]: (prev[pid] ?? "") + event.delta,
+                }));
+              }
+              if (event.done === true) {
+                setPersonaStatus((prev) => ({
+                  ...prev,
+                  [pid]: "done",
+                }));
+              }
+              if (event.error) {
+                setErr((e) => ({
+                  ...e,
+                  [pid]: String(event.error),
+                }));
+              }
+            }
+
+            if (event.finished === true) {
+              setIsAnalyzing(false);
+              setPersonaStatus(donePersonaStatus());
+            }
+          } catch {
+            /* skip malformed SSE JSON */
+          }
+        }
       }
 
       if (status === "authenticated") {
         const meta = readPendingMeta();
-        const avg = averageScoreFromOutputs(localOut);
+        const avg = averageScoreFromOutputs(localOutputs);
         const saved = await saveAnalysisAction({
           title: meta.title,
           source: meta.source,
           inputPreview: text.slice(0, 2000),
-          personaOutputs: localOut,
+          personaOutputs: localOutputs,
           synthesis: localSynthesis,
           slideOutline,
           avgScore: avg,
@@ -274,7 +311,14 @@ export function AnalyzeWorkspace() {
     } catch (e) {
       setBanner(e instanceof Error ? e.message : "Analysis failed.");
     } finally {
-      setRunning(false);
+      setIsAnalyzing(false);
+      setPersonaStatus((prev) => {
+        const next = { ...prev };
+        for (const id of PERSONA_IDS) {
+          if (next[id] === "streaming") next[id] = "done";
+        }
+        return next;
+      });
     }
   }, [guestBlocked, indiaMode, readPitchText, status, tab]);
 
@@ -327,8 +371,8 @@ export function AnalyzeWorkspace() {
           className="rounded border-cream-400 text-ink focus:ring-ink/20"
         />
         <span className="text-sm text-ink-600">
-          India context mode (M20) — INR, UPI, India TAM & tier-2/3 benchmarks
-          when relevant
+          India context mode — INR, UPI, India TAM & tier-2/3 benchmarks when
+          relevant
         </span>
       </label>
 
@@ -336,10 +380,10 @@ export function AnalyzeWorkspace() {
         <button
           type="button"
           onClick={runAnalysis}
-          disabled={running || !canRun() || guestBlocked}
+          disabled={isAnalyzing || !canRun() || guestBlocked}
           className="btn-primary !rounded-2xl disabled:opacity-50 disabled:pointer-events-none"
         >
-          {running ? "Running three investors…" : "Run adversarial analysis"}
+          {isAnalyzing ? "Running three investors…" : "Run adversarial analysis"}
         </button>
         {status === "authenticated" ? (
           <Link
@@ -375,8 +419,8 @@ export function AnalyzeWorkspace() {
           <PersonaStreamColumn
             key={id}
             id={id}
-            text={outputs[id]}
-            streaming={running}
+            text={personaOutputs[id]}
+            status={personaStatus[id]}
             error={err[id]}
             score={scores[id]}
           />
@@ -389,11 +433,12 @@ export function AnalyzeWorkspace() {
         </p>
       ) : null}
 
-      {synthesis ? (
-        <>
-          <ConflictMap data={synthesis.conflictMap} visible />
-          <RedFlagsSummary flags={synthesis.redFlags} visible />
-        </>
+      {synthesisMarkdown ? (
+        <ConflictMap synthesis={synthesisMarkdown} />
+      ) : null}
+
+      {synthesisPayload ? (
+        <RedFlagsSummary flags={synthesisPayload.redFlags} visible />
       ) : null}
     </div>
   );

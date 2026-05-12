@@ -27,7 +27,7 @@ export default async function BatchPage() {
         </Link>
         <h1 className="font-serif text-3xl text-ink mb-2">Batch deck upload</h1>
         <p className="text-sm text-ink-500 mb-8">
-          Queue up to twenty PDFs — text is extracted sequentially (M15).
+          Queue up to twenty PDFs — text is extracted sequentially.
         </p>
         <BatchUploadClient />
       </div>

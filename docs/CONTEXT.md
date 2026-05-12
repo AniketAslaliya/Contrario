@@ -62,8 +62,8 @@ The conflict map IS the product. That's the insight no competitor has.
 
 ## TECH STACK (DECIDED)
 - **Framework:** Next.js 14, App Router
-- **Styling:** Tailwind CSS + custom dark theme
-- **AI:** **Gemini** (`GEMINI_API_KEY`, `@google/generative-ai`) is the required backend for the current phase; `scripts/validate.js` enforces it. Anthropic (`AI_PROVIDER=anthropic`, `ANTHROPIC_API_KEY`) remains wired for multi-LLM work. Switch in `lib/ai-provider.ts` + `.env.local`.
+- **Styling:** Tailwind CSS + custom warm theme
+- **AI:** **Anthropic Claude** (`ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` optional, default `claude-sonnet-4-20250514`) via `lib/ai-provider.ts` (default backend). **Gemini** optional with `AI_PROVIDER=gemini` + `GEMINI_API_KEY`. `scripts/validate.js` enforces the key for the active backend.
 - **PDF Parse:** `pdf-parse` (Node.js, server action)
 - **Auth:** NextAuth.js (Google OAuth + Email magic link)
 - **DB:** Supabase (Postgres)
@@ -129,9 +129,10 @@ All 3 persona prompts live in `/lib/personas.ts`.
 
 ## ENVIRONMENT VARIABLES NEEDED
 ```env
-AI_PROVIDER=gemini
-GEMINI_API_KEY=
+AI_PROVIDER=anthropic
 ANTHROPIC_API_KEY=
+# ANTHROPIC_MODEL=claude-sonnet-4-20250514
+# Optional Gemini: AI_PROVIDER=gemini + GEMINI_API_KEY=
 NEXTAUTH_SECRET=
 NEXTAUTH_URL=
 GOOGLE_CLIENT_ID=
@@ -200,6 +201,11 @@ NEXT_PUBLIC_SUPABASE_DECK_BUCKET=deck-uploads
 - **Done:** M11 (`lib/deck-compare`, `/dashboard/compare`, `DeckCompareView`, `ComparePicker`, `extractKeyConcernFromMarkdown`) · M12 (`shared_reports` migration, `lib/shared-report-store`, `createShareReportAction`, `ShareReportTools` on analysis detail, public `app/r/[slug]/page.tsx`). Dashboard link to compare when ≥2 saves.
 - **Next:** Apply `20260514000000_shared_reports.sql` in Supabase (alongside `analyses` if not yet run).
 - **Blockers:** None beyond running SQL migrations.
+
+### Session 011 — May 12, 2026
+- **Done:** Default AI backend switched to **Anthropic** (`lib/ai-provider.ts`, `.env.example`, `README`, `scripts/validate.js`). **SSE client** in `AnalyzeWorkspace.tsx` rewritten (line-buffered `data:` JSON, `personaStatus`, `isAnalyzing`, `finished` event). **Persona cards** use `react-markdown` + stream cursor; **ConflictMap** renders synthesis markdown; **RedFlagsSummary** unchanged. **`lib/analyze-sse.ts`** uses explicit `Promise.all` for three personas. Landing **`ConflictMapPreview`** mockup after How It Works. Removed visible **(M__)** module tags from production UI copy. Installed **`react-markdown`** + **`@tailwindcss/typography`**.
+- **Prod/Vercel:** Set **`AI_PROVIDER=anthropic`**, **`ANTHROPIC_API_KEY`**, and **`GEMINI_API_KEY`** only if using `AI_PROVIDER=gemini`.
+- **Next:** None — ship.
 
 ---
 

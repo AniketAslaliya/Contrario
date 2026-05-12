@@ -31,7 +31,7 @@ export default async function OrgDashboardPage() {
         <h1 className="font-serif text-3xl text-ink mb-2">Organization</h1>
         <p className="text-sm text-ink-500 mb-8">
           Create a cohort workspace, share an invite code, and tune composite scoring
-          weights (M14 · M17).
+          weights.
         </p>
         <OrgWorkspace org={org} isAdmin={isAdmin} />
       </div>

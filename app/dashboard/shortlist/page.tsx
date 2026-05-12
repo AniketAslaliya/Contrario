@@ -42,7 +42,7 @@ export default async function ShortlistPage() {
         </Link>
         <h1 className="font-serif text-3xl text-ink mb-2">Ranked shortlist</h1>
         <p className="text-sm text-ink-500 mb-8">
-          Org analyses by average score (M16). Star decks for follow-up.
+          Org analyses by average score. Star decks for follow-up.
         </p>
         <ShortlistTable rows={rows} />
       </div>

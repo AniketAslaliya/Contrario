@@ -122,7 +122,7 @@ export function OrgWorkspace({ org, isAdmin }: Props) {
       {org && isAdmin ? (
         <form onSubmit={saveWeights} className="rounded-2xl border border-cream-400 bg-cream-100/70 p-5 space-y-4">
           <p className="text-xs uppercase tracking-[0.12em] text-ink-400">
-            Persona weights (M17)
+            Persona weights
           </p>
           <p className="text-xs text-ink-500">
             Used for custom composite ranking — sliders should reflect your fund thesis.

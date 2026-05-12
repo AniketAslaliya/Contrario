@@ -1,5 +1,4 @@
 import type { PersonaId } from "@/lib/personas";
-import { PERSONA_IDS } from "@/lib/personas";
 import { streamPersonaText } from "@/lib/persona-stream";
 import { synthesizeConflictAndFlags } from "@/lib/synthesis/post-analysis";
 import type { PitchSlide } from "@/lib/slide-split";
@@ -52,29 +51,34 @@ export function buildAnalyzeSseStream(params: {
     "reality-check": "",
   };
 
+  async function runOnePersona(
+    controller: ReadableStreamDefaultController<Uint8Array>,
+    id: PersonaId
+  ) {
+    try {
+      for await (const delta of streamPersonaText(id, text, {
+        slides: slidesForStream ?? undefined,
+        indiaContext,
+      })) {
+        buffers[id] += delta;
+        await safeWrite(controller, { persona: id, delta });
+      }
+      await safeWrite(controller, { persona: id, done: true });
+    } catch (e) {
+      await safeWrite(controller, {
+        persona: id,
+        error: e instanceof Error ? e.message : "Stream failed",
+      });
+    }
+  }
+
   return new ReadableStream<Uint8Array>({
     async start(controller) {
-      await Promise.all(
-        PERSONA_IDS.map((id) =>
-          (async () => {
-            try {
-              for await (const delta of streamPersonaText(id, text, {
-                slides: slidesForStream ?? undefined,
-                indiaContext,
-              })) {
-                buffers[id] += delta;
-                await safeWrite(controller, { persona: id, delta });
-              }
-              await safeWrite(controller, { persona: id, done: true });
-            } catch (e) {
-              await safeWrite(controller, {
-                persona: id,
-                error: e instanceof Error ? e.message : "Stream failed",
-              });
-            }
-          })()
-        )
-      );
+      await Promise.all([
+        runOnePersona(controller, "scale-chaser"),
+        runOnePersona(controller, "conviction-buyer"),
+        runOnePersona(controller, "reality-check"),
+      ]);
       await writeSerial;
 
       try {

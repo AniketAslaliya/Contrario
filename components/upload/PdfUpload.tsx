@@ -147,8 +147,7 @@ export function PdfUpload({ onPitchReady }: { onPitchReady?: () => void }) {
           {success.chars.toLocaleString()} characters from {success.pages} page
           {success.pages === 1 ? "" : "s"}.
           {success.stored ? " Copy saved to your workspace storage." : " "}
-          Stored locally for the analysis engine (M06) — nothing sent to the LLM
-          yet.
+          Stored locally for analysis — nothing sent to the LLM yet.
         </div>
       ) : null}
     </div>

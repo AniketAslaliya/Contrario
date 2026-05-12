@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Navbar } from "@/components/ui/Navbar";
 import { PersonaDemo } from "@/components/landing/PersonaDemo";
 import { HowItWorks } from "@/components/landing/HowItWorks";
+import { ConflictMapPreview } from "@/components/landing/ConflictMapPreview";
 import { FeatureGrid } from "@/components/landing/FeatureGrid";
 import { Footer } from "@/components/ui/Footer";
 
@@ -241,6 +242,8 @@ export default function LandingPage() {
           HOW IT WORKS
           ============================================ */}
       <HowItWorks />
+
+      <ConflictMapPreview />
 
       {/* ============================================
           PERSONAS — "WHY CHOOSE US" STYLE
