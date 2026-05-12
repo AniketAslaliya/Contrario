@@ -1,115 +1,101 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 const steps = [
   {
     number: "01",
-    title: "Upload Your Deck",
-    description: "Drop your pitch deck PDF or paste your raw idea. We extract the signal from the noise.",
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-      </svg>
-    ),
+    title: "Upload",
+    description:
+      "Drop your pitch deck PDF or paste your raw pitch text. We parse every slide, every claim, every number.",
   },
   {
     number: "02",
-    title: "Three Personas Fire",
-    description: "Scale Chaser, Conviction Buyer, and Reality Check analyze your pitch simultaneously — in parallel.",
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-      </svg>
-    ),
+    title: "Analyze",
+    description:
+      "Three investor archetypes fire simultaneously via parallel Claude API calls. No waiting. Streaming tokens arrive in real-time.",
   },
   {
     number: "03",
-    title: "See the Conflict",
-    description: "The conflict map reveals where investors agree (fix immediately) and where they clash (your strategic choice).",
-    icon: (
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-      </svg>
-    ),
+    title: "Conflict",
+    description:
+      "Our conflict engine maps where all three investors agree (your critical fixes) and where they diverge (your positioning choices).",
+  },
+  {
+    number: "04",
+    title: "Iterate",
+    description:
+      "Improve your deck, re-run. Track how your conflict map evolves over versions. Watch disagreement shrink where it matters.",
   },
 ];
 
 export function HowItWorks() {
-  const [visibleSteps, setVisibleSteps] = useState<Set<number>>(new Set());
-  const refs = useRef<(HTMLDivElement | null)[]>([]);
+  const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const idx = Number(entry.target.getAttribute("data-index"));
-            setVisibleSteps((prev) => new Set([...prev, idx]));
-          }
-        });
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.classList.add("visible");
+          observer.unobserve(el);
+        }
       },
-      { threshold: 0.3 }
+      { threshold: 0.1 }
     );
-
-    refs.current.forEach((ref) => {
-      if (ref) observer.observe(ref);
-    });
-
+    observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
   return (
-    <section id="how-it-works" className="relative py-32 px-4">
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-16">
-          <span className="text-sm font-medium text-brand-400 uppercase tracking-widest">
-            How It Works
-          </span>
-          <h2 className="text-4xl md:text-5xl font-bold mt-4 text-white">
-            From deck to conflict map in{" "}
-            <span className="text-gradient">30 seconds</span>
+    <section
+      id="how-it-works"
+      className="py-24 md:py-34 px-6 lg:px-10"
+    >
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-20">
+          <div className="pill mx-auto mb-8">How It Works</div>
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl max-w-3xl mx-auto">
+            We handle{" "}
+            <span className="italic text-muted-word">everything</span> so you
+            don&apos;t have&nbsp;to.
           </h2>
+          <p className="text-ink-400 text-base sm:text-lg max-w-xl mx-auto mt-6 leading-relaxed">
+            From deck parsing to conflict mapping — upload once, get three
+            perspectives in seconds.
+          </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {steps.map((step, i) => (
-            <div
-              key={step.number}
-              ref={(el) => {
-                refs.current[i] = el;
-              }}
-              data-index={i}
-              className={`relative glass rounded-2xl p-8 border-glow transition-all duration-700 ${
-                visibleSteps.has(i)
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-8"
-              }`}
-              style={{ transitionDelay: `${i * 150}ms` }}
-            >
-              {/* Step number */}
-              <div className="text-6xl font-black text-white/[0.03] absolute top-4 right-6 select-none">
-                {step.number}
+        <div ref={sectionRef} className="reveal">
+          <div className="max-w-4xl mx-auto">
+            {steps.map((step, i) => (
+              <div key={step.number} className="flex gap-8 md:gap-16">
+                {/* Left side — big serif number */}
+                <div className="flex flex-col items-center">
+                  <div className="relative">
+                    <span className="font-serif text-6xl md:text-8xl text-ink-100 select-none">
+                      {step.title}
+                    </span>
+                    <span className="absolute -top-2 -right-5 font-sans text-xs text-ink-300">
+                      {step.number}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Right side — description */}
+                <div
+                  className={`flex-1 pb-16 ${
+                    i < steps.length - 1 ? "border-l border-cream-400 pl-8 md:pl-12" : "pl-8 md:pl-12"
+                  }`}
+                >
+                  <p className="text-ink-400 text-base leading-relaxed max-w-md">
+                    {step.description}
+                  </p>
+                </div>
               </div>
-
-              {/* Icon */}
-              <div className="w-14 h-14 rounded-xl bg-brand-900/30 border border-brand-700/20 flex items-center justify-center text-brand-400 mb-6">
-                {step.icon}
-              </div>
-
-              <h3 className="text-xl font-bold text-white mb-3">
-                {step.title}
-              </h3>
-              <p className="text-sm text-zinc-400 leading-relaxed">
-                {step.description}
-              </p>
-
-              {/* Connector line (between cards on desktop) */}
-              {i < 2 && (
-                <div className="hidden md:block absolute top-1/2 -right-4 w-8 h-[1px] bg-gradient-to-r from-brand-700/40 to-transparent" />
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </section>

@@ -9,92 +9,104 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-        // Contrario brand palette
-        brand: {
-          50: "#f0f4ff",
-          100: "#dbe4ff",
-          200: "#bac8ff",
-          300: "#91a7ff",
-          400: "#748ffc",
-          500: "#5c7cfa",
-          600: "#4c6ef5",
-          700: "#4263eb",
-          800: "#3b5bdb",
-          900: "#364fc7",
+        // Warm beige background palette (Claura-inspired)
+        cream: {
+          50: "#FDFBF7",
+          100: "#F9F5ED",
+          200: "#F4F1ED",
+          300: "#EDE8E0",
+          400: "#E0D9CE",
+          500: "#D4CCBF",
         },
-        surface: {
-          0: "#09090b",    // Deepest background
-          1: "#0f0f13",    // Page background
-          2: "#16161d",    // Card background
-          3: "#1c1c27",    // Elevated cards
-          4: "#232330",    // Hover states
+        // Deep warm dark tones
+        ink: {
+          DEFAULT: "#1A1A1A",
+          50: "#F5F5F5",
+          100: "#E5E5E5",
+          200: "#CCCCCC",
+          300: "#B3B3B3",
+          400: "#8A8A8A",
+          500: "#6B6B6B",
+          600: "#4A4A4A",
+          700: "#333333",
+          800: "#262626",
+          900: "#1A1A1A",
         },
+        // Persona colors (warm and organic)
         persona: {
-          scale: "#ef4444",       // P1 Scale Chaser — Red
-          conviction: "#eab308",  // P2 Conviction Buyer — Yellow/Gold
-          reality: "#22c55e",     // P3 Reality Check — Green
+          scale: "#C45A3C",       // Warm terracotta red
+          "scale-light": "#E8B4A4",
+          conviction: "#B8860B",  // Rich gold
+          "conviction-light": "#E8D5A0",
+          reality: "#2D7D6B",    // Deep teal
+          "reality-light": "#A3D5C9",
         },
+        // Accent — warm brown (Claura CTA)
         accent: {
-          glow: "#7c3aed",   // Purple glow
-          cyan: "#06b6d4",   // Cyan accent
+          DEFAULT: "#3D2B1F",
+          light: "#5C4030",
+          hover: "#2A1D15",
+        },
+        // Soft gradient palette
+        warm: {
+          orange: "#FF9D66",
+          peach: "#FFD0A5",
+          rose: "#E8A598",
+        },
+        cool: {
+          teal: "#2DD4BF",
+          mint: "#A3E635",
+          sage: "#6B9080",
         },
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
-        display: ["Inter", "system-ui", "-apple-system", "sans-serif"],
-        mono: ["JetBrains Mono", "Fira Code", "monospace"],
+        serif: ["'Cormorant Garamond'", "'Georgia'", "serif"],
+        sans: ["'Inter'", "system-ui", "-apple-system", "sans-serif"],
       },
-      backgroundImage: {
-        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-conic": "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
-        "grid-pattern": "linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px)",
+      borderRadius: {
+        "2xl": "1rem",
+        "3xl": "1.5rem",
+        "4xl": "2rem",
       },
-      backgroundSize: {
-        "grid": "40px 40px",
+      spacing: {
+        "18": "4.5rem",
+        "22": "5.5rem",
+        "30": "7.5rem",
+        "34": "8.5rem",
+        "38": "9.5rem",
       },
       animation: {
-        "fade-in": "fadeIn 0.5s ease-out",
-        "fade-up": "fadeUp 0.6s ease-out",
-        "slide-up": "slideUp 0.5s ease-out",
-        "glow-pulse": "glowPulse 3s ease-in-out infinite",
+        "fade-up": "fadeUp 0.8s ease-out forwards",
+        "fade-in": "fadeIn 0.6s ease-out forwards",
+        "slide-up": "slideUp 0.7s ease-out forwards",
         "float": "float 6s ease-in-out infinite",
-        "shimmer": "shimmer 2s linear infinite",
-        "typing": "typing 1.5s ease-in-out infinite",
+        "marquee": "marquee 25s linear infinite",
       },
       keyframes: {
+        fadeUp: {
+          "0%": { opacity: "0", transform: "translateY(30px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
         fadeIn: {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
-        fadeUp: {
+        slideUp: {
           "0%": { opacity: "0", transform: "translateY(20px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        slideUp: {
-          "0%": { opacity: "0", transform: "translateY(40px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        glowPulse: {
-          "0%, 100%": { opacity: "0.4" },
-          "50%": { opacity: "0.8" },
         },
         float: {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
         },
-        shimmer: {
-          "0%": { transform: "translateX(-100%)" },
-          "100%": { transform: "translateX(100%)" },
-        },
-        typing: {
-          "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0.3" },
+        marquee: {
+          "0%": { transform: "translateX(0%)" },
+          "100%": { transform: "translateX(-50%)" },
         },
       },
     },
   },
   plugins: [],
 };
+
 export default config;

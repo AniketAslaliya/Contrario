@@ -1,118 +1,361 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Navbar } from "@/components/ui/Navbar";
 import { PersonaDemo } from "@/components/landing/PersonaDemo";
-import { FeatureGrid } from "@/components/landing/FeatureGrid";
 import { HowItWorks } from "@/components/landing/HowItWorks";
+import { FeatureGrid } from "@/components/landing/FeatureGrid";
 import { Footer } from "@/components/ui/Footer";
+
+function useReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.classList.add("visible");
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.15 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
 
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const aboutRef = useReveal();
+  const statsRef = useReveal();
+  const ctaRef = useReveal();
 
   return (
     <main className="relative overflow-hidden">
-      {/* Background grid */}
-      <div className="fixed inset-0 bg-grid-pattern bg-grid opacity-100 pointer-events-none" />
-
-      {/* Gradient orbs */}
-      <div className="fixed top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-brand-900/20 blur-[120px] pointer-events-none animate-glow-pulse" />
-      <div className="fixed bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-accent-glow/15 blur-[120px] pointer-events-none animate-glow-pulse" style={{ animationDelay: "1.5s" }} />
-      <div className="fixed top-[40%] right-[20%] w-[300px] h-[300px] rounded-full bg-persona-scale/5 blur-[100px] pointer-events-none" />
-
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 pt-20">
-        <div className="max-w-6xl mx-auto text-center">
-          {/* Badge */}
-          <div
-            className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass border-glow text-sm text-zinc-400 mb-8 transition-all duration-700 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
-          >
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            Built for Activate AI Fellows — Summer 2026
+      {/* ============================================
+          HERO SECTION
+          ============================================ */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-28 pb-16">
+        {/* Social proof badge */}
+        <div
+          className={`transition-all duration-700 ${
+            mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+          }`}
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex -space-x-1">
+              {["★", "★", "★", "★", "★"].map((s, i) => (
+                <span key={i} className="text-persona-conviction text-sm">
+                  {s}
+                </span>
+              ))}
+            </div>
           </div>
-
-          {/* Main heading */}
-          <h1
-            className={`text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[0.95] mb-6 transition-all duration-700 delay-100 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
-          >
-            <span className="text-white">Three investors.</span>
-            <br />
-            <span className="text-white">One deck.</span>
-            <br />
-            <span className="text-gradient-warm">Zero consensus.</span>
-          </h1>
-
-          {/* Subtitle */}
-          <p
-            className={`max-w-2xl mx-auto text-lg md:text-xl text-zinc-400 leading-relaxed mb-10 transition-all duration-700 delay-200 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
-          >
-            Upload your pitch deck and get{" "}
-            <span className="text-white font-medium">simultaneous feedback</span>{" "}
-            from three distinct investor archetypes — then see exactly where they{" "}
-            <span className="text-gradient font-semibold">clash</span>.
+          <p className="text-sm text-ink-400 mb-8 text-center">
+            Built for the Activate AI Fellows Program
           </p>
+        </div>
 
-          {/* CTAs */}
-          <div
-            className={`flex flex-col sm:flex-row gap-4 justify-center items-center mb-16 transition-all duration-700 delay-300 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
-          >
-            <Link
-              href="/analyze"
-              id="cta-try-free"
-              className="group relative px-8 py-4 bg-gradient-to-r from-brand-600 to-brand-800 rounded-xl text-white font-semibold text-lg transition-all duration-300 hover:shadow-[0_0_40px_rgba(92,124,250,0.3)] hover:scale-105 active:scale-95"
-            >
-              <span className="relative z-10">Try Free — No Signup</span>
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-brand-500 to-accent-glow opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </Link>
-            <Link
-              href="/auth"
-              id="cta-sign-up"
-              className="px-8 py-4 rounded-xl text-zinc-300 font-medium text-lg glass border-glow border-glow-hover transition-all duration-300 hover:text-white hover:scale-105 active:scale-95"
-            >
-              Sign Up →
-            </Link>
-          </div>
+        {/* Main Heading */}
+        <h1
+          className={`text-center text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] xl:text-[6.5rem] leading-[1.05] tracking-tight max-w-5xl mx-auto mb-8 transition-all duration-900 delay-100 ${
+            mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+        >
+          Three investors.
+          <br />
+          One deck.{" "}
+          <span className="italic text-muted-word">Zero&nbsp;consensus.</span>
+        </h1>
 
-          {/* Persona trio preview */}
-          <div
-            className={`transition-all duration-1000 delay-500 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
-          >
-            <PersonaDemo />
+        {/* Subtitle */}
+        <p
+          className={`text-center text-base sm:text-lg text-ink-400 max-w-2xl mx-auto leading-relaxed mb-12 transition-all duration-700 delay-200 ${
+            mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+          }`}
+        >
+          Upload your pitch deck and get simultaneous feedback from three
+          distinct investor archetypes — then see exactly where they{" "}
+          <span className="text-ink font-medium">clash</span>.
+        </p>
+
+        {/* CTAs */}
+        <div
+          className={`flex flex-col sm:flex-row gap-4 items-center mb-20 transition-all duration-700 delay-300 ${
+            mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+          }`}
+        >
+          <Link href="/analyze" id="cta-try-free" className="btn-primary">
+            Try Free — No Signup
+          </Link>
+          <Link href="#how-it-works" className="btn-secondary">
+            How it works
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </Link>
+        </div>
+
+        {/* Hero visual — warm gradient card with persona preview */}
+        <div
+          className={`w-full max-w-5xl mx-auto transition-all duration-1000 delay-500 ${
+            mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
+          }`}
+        >
+          <div className="relative rounded-3xl overflow-hidden warm-gradient grainy">
+            <div className="relative z-10 p-6 sm:p-10">
+              <PersonaDemo />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* How It Works */}
+      {/* ============================================
+          BRAND / TRUST BAR
+          ============================================ */}
+      <section className="py-12 border-y border-cream-400/60">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 flex flex-col md:flex-row items-center gap-6 md:gap-12">
+          <p className="text-sm text-ink-400 whitespace-nowrap">
+            Built for founders raising from:
+          </p>
+          <div className="flex items-center gap-8 md:gap-14 overflow-hidden opacity-40">
+            {[
+              "Y Combinator",
+              "Peak XV",
+              "Sequoia",
+              "Accel",
+              "Blume",
+              "100X.VC",
+            ].map((name) => (
+              <span
+                key={name}
+                className="font-serif text-lg md:text-xl whitespace-nowrap text-ink-700"
+              >
+                {name}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================
+          ABOUT / WHO WE ARE
+          ============================================ */}
+      <section className="py-24 md:py-34 px-6 lg:px-10">
+        <div
+          ref={aboutRef}
+          className="reveal max-w-7xl mx-auto grid md:grid-cols-2 gap-12 md:gap-20 items-start"
+        >
+          <div>
+            <div className="pill mb-8">What is Contrario</div>
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl leading-[1.1]">
+              Not another{" "}
+              <span className="italic text-muted-word">AI feedback</span> tool.
+            </h2>
+          </div>
+          <div className="md:pt-4">
+            <p className="text-ink-400 text-base sm:text-lg leading-relaxed mb-6">
+              Every AI pitch tool gives you one voice. One AI. One generic
+              checklist. Real investors don&apos;t agree — a growth VC, an
+              Indian angel, and a skeptical operator will tear your deck apart in
+              completely different ways.
+            </p>
+            <p className="text-ink-400 text-base sm:text-lg leading-relaxed">
+              That{" "}
+              <span className="text-ink font-medium">
+                conflict is the signal
+              </span>{" "}
+              you actually need. Contrario fires three investor archetypes
+              simultaneously and shows you exactly where they clash.
+            </p>
+          </div>
+        </div>
+
+        {/* Stats Card */}
+        <div ref={statsRef} className="reveal max-w-5xl mx-auto mt-20">
+          <div className="relative rounded-3xl overflow-hidden cool-gradient grainy">
+            <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-0.5 p-1">
+              {[
+                {
+                  value: "3",
+                  label: "Investor archetypes analyzing simultaneously",
+                },
+                { value: "30s", label: "From deck upload to conflict map" },
+                { value: "∞", label: "Perspectives you'd never get alone" },
+              ].map((stat, i) => (
+                <div
+                  key={i}
+                  className="backdrop-blur-sm bg-white/10 rounded-[1.4rem] p-8 sm:p-10 text-center"
+                >
+                  <p className="font-serif text-5xl sm:text-6xl text-white mb-3">
+                    {stat.value}
+                  </p>
+                  <p className="text-white/70 text-sm">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================
+          HOW IT WORKS
+          ============================================ */}
       <HowItWorks />
 
-      {/* Features */}
+      {/* ============================================
+          PERSONAS — "WHY CHOOSE US" STYLE
+          ============================================ */}
+      <section id="personas" className="py-24 md:py-34 px-6 lg:px-10">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="pill mx-auto mb-8">The Personas</div>
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl max-w-3xl mx-auto">
+              We&apos;re not your{" "}
+              <span className="italic text-muted-word">typical</span> AI
+              feedback.
+            </h2>
+            <p className="text-ink-400 text-base sm:text-lg max-w-xl mx-auto mt-6 leading-relaxed">
+              Three distinct investor archetypes with competing priorities — the
+              disagreement is the feature.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-5">
+            {/* Scale Chaser */}
+            <div className="card-large card-gradient-scale relative grainy">
+              <div className="relative z-10 p-8 sm:p-10 min-h-[380px] flex flex-col justify-end">
+                <div className="mb-auto">
+                  <div className="flex gap-2 flex-wrap mb-6">
+                    {["Market size", "10x trajectory", "Moat"].map((tag) => (
+                      <span
+                        key={tag}
+                        className="text-xs px-3 py-1.5 rounded-full bg-white/10 text-white/80 backdrop-blur-sm"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <h3 className="font-serif text-4xl sm:text-5xl text-white mb-3">
+                  The Scale
+                  <br />
+                  Chaser
+                </h3>
+                <p className="text-white/60 text-sm leading-relaxed">
+                  Growth VC archetype (Peak XV style). Only cares about billion
+                  dollar outcomes and market dominance.
+                </p>
+              </div>
+            </div>
+
+            {/* Conviction Buyer */}
+            <div className="card-large card-gradient-conviction relative grainy">
+              <div className="relative z-10 p-8 sm:p-10 min-h-[380px] flex flex-col justify-end">
+                <div className="mb-auto">
+                  <div className="flex gap-2 flex-wrap mb-6">
+                    {["Founder grit", "India insight", "Capital efficiency"].map(
+                      (tag) => (
+                        <span
+                          key={tag}
+                          className="text-xs px-3 py-1.5 rounded-full bg-white/10 text-white/80 backdrop-blur-sm"
+                        >
+                          {tag}
+                        </span>
+                      )
+                    )}
+                  </div>
+                </div>
+                <h3 className="font-serif text-4xl sm:text-5xl text-white mb-3">
+                  The Conviction
+                  <br />
+                  Buyer
+                </h3>
+                <p className="text-white/60 text-sm leading-relaxed">
+                  First-check Indian angel. Bets on people, not spreadsheets.
+                  Tests your conviction and market understanding.
+                </p>
+              </div>
+            </div>
+
+            {/* Reality Check */}
+            <div className="card-large card-gradient-reality relative grainy">
+              <div className="relative z-10 p-8 sm:p-10 min-h-[380px] flex flex-col justify-end">
+                <div className="mb-auto">
+                  <div className="flex gap-2 flex-wrap mb-6">
+                    {["Unit economics", "GTM reality", "Traction"].map(
+                      (tag) => (
+                        <span
+                          key={tag}
+                          className="text-xs px-3 py-1.5 rounded-full bg-white/10 text-white/80 backdrop-blur-sm"
+                        >
+                          {tag}
+                        </span>
+                      )
+                    )}
+                  </div>
+                </div>
+                <h3 className="font-serif text-4xl sm:text-5xl text-white mb-3">
+                  The Reality
+                  <br />
+                  Check
+                </h3>
+                <p className="text-white/60 text-sm leading-relaxed">
+                  Skeptical operator who&apos;s built and failed. Won&apos;t let
+                  you hide behind optimism. Demands proof.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================
+          FEATURES
+          ============================================ */}
       <FeatureGrid />
 
-      {/* Bottom CTA */}
-      <section className="relative py-32 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+      {/* ============================================
+          BOTTOM CTA
+          ============================================ */}
+      <section className="py-24 md:py-34 px-6 lg:px-10">
+        <div ref={ctaRef} className="reveal max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl mb-6">
             Stop getting{" "}
-            <span className="line-through text-zinc-600">one opinion</span>.
+            <span className="italic line-through text-muted-word">
+              one opinion
+            </span>
+            .
             <br />
             Start getting{" "}
-            <span className="text-gradient-warm">real conflict</span>.
+            <span className="italic text-persona-scale">real conflict</span>.
           </h2>
-          <p className="text-zinc-400 text-lg mb-10 max-w-xl mx-auto">
+          <p className="text-ink-400 text-base sm:text-lg max-w-xl mx-auto leading-relaxed mb-10">
             The best pitch decks are forged in disagreement. Let three investor
             archetypes tear yours apart — simultaneously.
           </p>
           <Link
             href="/analyze"
             id="cta-bottom-try"
-            className="inline-flex px-10 py-5 bg-gradient-to-r from-brand-600 to-brand-800 rounded-xl text-white font-semibold text-lg transition-all duration-300 hover:shadow-[0_0_40px_rgba(92,124,250,0.3)] hover:scale-105"
+            className="btn-primary !px-12 !py-5 !text-base"
           >
             Analyze Your Deck Free →
           </Link>

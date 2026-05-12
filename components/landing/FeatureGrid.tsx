@@ -1,118 +1,93 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 const features = [
   {
+    icon: "⚡",
     title: "Parallel Streaming",
     description:
-      "All 3 investor personas respond simultaneously. See tokens arrive in real-time across three cards.",
-    icon: "⚡",
-    gradient: "from-brand-600/20 to-accent-glow/10",
+      "All 3 personas respond simultaneously via Promise.all(). See tokens stream in real-time — no waiting.",
   },
   {
+    icon: "🗺️",
     title: "Conflict Map",
     description:
-      "The signature feature. See exactly where investors agree and where they clash — that's your real signal.",
-    icon: "🗺️",
-    gradient: "from-persona-scale/10 via-persona-conviction/10 to-persona-reality/10",
+      "Visual overlay showing where investors agree (fix these) and where they diverge (positioning decisions).",
   },
   {
+    icon: "📄",
     title: "PDF or Text",
     description:
-      "Upload your pitch deck as PDF or paste your raw startup idea. Both paths feed the same analysis engine.",
-    icon: "📄",
-    gradient: "from-brand-800/20 to-brand-600/10",
+      "Upload a deck PDF (we parse every slide) or paste raw pitch text. Works with decks or just ideas.",
   },
   {
+    icon: "🇮🇳",
     title: "India Context Mode",
     description:
-      "Toggle India-specific benchmarks: CAC in INR, India TAM, UPI distribution, Tier 2/3 dynamics.",
-    icon: "🇮🇳",
-    gradient: "from-persona-conviction/15 to-persona-conviction/5",
+      "Benchmarks tuned for Indian market dynamics. ₹ currency, local comps, desi investor psychology.",
   },
   {
-    title: "Session History",
-    description:
-      "Track how your deck improves across versions. Compare v1 vs v2 scores across all three personas.",
     icon: "📊",
-    gradient: "from-accent-cyan/10 to-brand-600/10",
+    title: "Version Tracking",
+    description:
+      "Re-run with updated decks. See how your conflict map evolves. Track improvement over sessions.",
   },
   {
+    icon: "🔗",
     title: "Shareable Reports",
     description:
-      "Generate a unique link for any analysis. Share with mentors and co-founders — no login required to view.",
-    icon: "🔗",
-    gradient: "from-persona-reality/10 to-brand-700/10",
+      "Send a link, not a PDF. Mentors, co-founders, and advisors get the full picture in one click.",
   },
 ];
 
 export function FeatureGrid() {
-  const [visibleItems, setVisibleItems] = useState<Set<number>>(new Set());
-  const refs = useRef<(HTMLDivElement | null)[]>([]);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
     const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const idx = Number(entry.target.getAttribute("data-index"));
-            setVisibleItems((prev) => new Set([...prev, idx]));
-          }
-        });
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.classList.add("visible");
+          observer.unobserve(el);
+        }
       },
-      { threshold: 0.2 }
+      { threshold: 0.1 }
     );
-
-    refs.current.forEach((ref) => {
-      if (ref) observer.observe(ref);
-    });
-
+    observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
   return (
-    <section id="features" className="relative py-32 px-4">
-      <div className="max-w-6xl mx-auto">
+    <section id="features" className="py-24 md:py-34 px-6 lg:px-10 border-t border-cream-400/60">
+      <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <span className="text-sm font-medium text-brand-400 uppercase tracking-widest">
-            Features
-          </span>
-          <h2 className="text-4xl md:text-5xl font-bold mt-4 text-white">
-            Everything you need to{" "}
-            <span className="text-gradient">stress-test</span> your pitch
+          <div className="pill mx-auto mb-8">Features</div>
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl max-w-3xl mx-auto">
+            Everything you need.{" "}
+            <span className="italic text-muted-word">Nothing</span> you don&apos;t.
           </h2>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {features.map((feature, i) => (
+        <div
+          ref={ref}
+          className="reveal grid sm:grid-cols-2 lg:grid-cols-3 gap-5"
+        >
+          {features.map((f, i) => (
             <div
-              key={feature.title}
-              ref={(el) => {
-                refs.current[i] = el;
-              }}
-              data-index={i}
-              className={`group glass rounded-xl p-6 border-glow border-glow-hover cursor-default transition-all duration-700 hover:scale-[1.02] ${
-                visibleItems.has(i)
-                  ? "opacity-100 translate-y-0"
-                  : "opacity-0 translate-y-6"
-              }`}
-              style={{ transitionDelay: `${i * 100}ms` }}
+              key={i}
+              className="card group"
+              style={{ transitionDelay: `${i * 80}ms` }}
             >
-              {/* Gradient overlay on hover */}
-              <div
-                className={`absolute inset-0 rounded-xl bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
-              />
-
-              <div className="relative z-10">
-                <div className="text-3xl mb-4">{feature.icon}</div>
-                <h3 className="text-lg font-bold text-white mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-sm text-zinc-400 leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
+              <div className="text-3xl mb-5">{f.icon}</div>
+              <h3 className="font-serif text-2xl mb-3 text-ink group-hover:text-persona-scale transition-colors duration-300">
+                {f.title}
+              </h3>
+              <p className="text-ink-400 text-sm leading-relaxed">
+                {f.description}
+              </p>
             </div>
           ))}
         </div>
