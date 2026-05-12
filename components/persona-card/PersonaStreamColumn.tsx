@@ -14,16 +14,30 @@ type Props = {
   text: string;
   streaming: boolean;
   error?: string | null;
+  score?: string | null;
 };
 
-export function PersonaStreamColumn({ id, text, streaming, error }: Props) {
+export function PersonaStreamColumn({
+  id,
+  text,
+  streaming,
+  error,
+  score,
+}: Props) {
   return (
     <div
       className={`rounded-2xl border border-cream-400 bg-cream-100/70 p-4 text-left border-l-4 ${accent[id]}`}
     >
-      <h3 className="font-serif text-xl text-ink mb-2 tracking-tight">
-        {displayNameForPersona(id)}
-      </h3>
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <h3 className="font-serif text-xl text-ink tracking-tight">
+          {displayNameForPersona(id)}
+        </h3>
+        {score ? (
+          <span className="shrink-0 rounded-full bg-ink text-cream-100 text-xs font-medium px-2.5 py-1 tabular-nums">
+            {score}/10
+          </span>
+        ) : null}
+      </div>
       {error ? (
         <p className="text-sm text-persona-scale">{error}</p>
       ) : (

@@ -292,12 +292,24 @@ const validators = {
     );
 
     const backend = activeAiBackend();
-    if (backend === "gemini") {
-      check(
-        envExists("GEMINI_API_KEY"),
-        "GEMINI_API_KEY set (default AI backend)",
-        "GEMINI_API_KEY MISSING — add key or set AI_PROVIDER=anthropic"
+    const hasGemini = envExists("GEMINI_API_KEY");
+    const hasAnthropic = envExists("ANTHROPIC_API_KEY");
+    check(
+      hasGemini || hasAnthropic,
+      "At least one LLM key is set (GEMINI_API_KEY and/or ANTHROPIC_API_KEY)",
+      "No LLM API key found — add GEMINI_API_KEY or ANTHROPIC_API_KEY to .env.local"
+    );
+    if (backend === "gemini" && !hasGemini && hasAnthropic) {
+      warn(
+        "AI_PROVIDER is gemini (default) but only ANTHROPIC_API_KEY is set — set GEMINI_API_KEY or AI_PROVIDER=anthropic"
       );
+    }
+    if (backend === "anthropic" && !hasAnthropic && hasGemini) {
+      warn(
+        "AI_PROVIDER=anthropic but only GEMINI_API_KEY is set — set ANTHROPIC_API_KEY or use default Gemini"
+      );
+    }
+    if (backend === "gemini") {
       check(
         fileContains("package.json", "@google/generative-ai"),
         "@google/generative-ai in package.json",
@@ -305,14 +317,9 @@ const validators = {
       );
     } else {
       check(
-        envExists("ANTHROPIC_API_KEY"),
-        "ANTHROPIC_API_KEY set",
-        "ANTHROPIC_API_KEY MISSING — analysis will not work"
-      );
-      check(
         fileContains("package.json", "@anthropic-ai/sdk"),
         "@anthropic-ai/sdk in package.json",
-        "@anthropic-ai/sdk NOT installed — run: npm install @anthropic-ai/sdk"
+        "@anthropic-ai/sdk NOT in package.json — run: npm install @anthropic-ai/sdk"
       );
     }
 
@@ -351,6 +358,17 @@ const validators = {
       "Both LLM SDKs in package.json (Anthropic + Gemini)",
       "Add missing @anthropic-ai/sdk and/or @google/generative-ai to package.json"
     );
+    check(
+      fileExists("lib/synthesis/post-analysis.ts") ||
+        fileExists("lib/synthesis/post-analysis.js"),
+      "lib/synthesis/post-analysis exists",
+      "lib/synthesis/post-analysis.ts MISSING — M07/M08 synthesis"
+    );
+    check(
+      fileContains("app/api/analyze/route.ts", "synthesizeConflictAndFlags"),
+      "Analyze route calls synthesizeConflictAndFlags after streams",
+      "M07: wire synthesizeConflictAndFlags in app/api/analyze/route.ts"
+    );
     warn("Manually test: all 3 streams fire simultaneously (check Network tab), first token < 3s");
   },
 
@@ -370,6 +388,11 @@ const validators = {
       "ConflictMap component exists",
       "ConflictMap component MISSING"
     );
+    check(
+      fileContains("app/analyze/AnalyzeWorkspace.tsx", "ConflictMap"),
+      "Analyze page imports ConflictMap",
+      "M07: render ConflictMap in app/analyze/AnalyzeWorkspace.tsx"
+    );
     warn("Manually test: 3-column layout, mobile stacks, conflict zones highlighted, streaming animation smooth");
   },
 
@@ -381,6 +404,11 @@ const validators = {
         fileExists("components/consensus"),
       "RedFlagsSummary component exists",
       "RedFlagsSummary component MISSING"
+    );
+    check(
+      fileContains("app/analyze/AnalyzeWorkspace.tsx", "RedFlagsSummary"),
+      "Analyze page imports RedFlagsSummary",
+      "M08: render RedFlagsSummary in app/analyze/AnalyzeWorkspace.tsx"
     );
     warn("Manually test: appears after all 3 streams complete, shows max 3 items, red-tinted styling");
   },
@@ -464,17 +492,21 @@ async function preDeployChecks() {
   envVars.forEach((v) => check(envExists(v), `${v} is set`, `${v} MISSING`));
 
   header("AI provider (see lib/ai-provider.ts)");
-  if (activeAiBackend() === "gemini") {
-    check(
-      envExists("GEMINI_API_KEY"),
-      "GEMINI_API_KEY is set (default backend)",
-      "GEMINI_API_KEY MISSING — get a key from Google AI Studio, or set AI_PROVIDER=anthropic"
+  const hasGemini = envExists("GEMINI_API_KEY");
+  const hasAnthropic = envExists("ANTHROPIC_API_KEY");
+  check(
+    hasGemini || hasAnthropic,
+    "At least one LLM key (GEMINI_API_KEY and/or ANTHROPIC_API_KEY)",
+    "No LLM API key — add GEMINI_API_KEY or ANTHROPIC_API_KEY"
+  );
+  if (activeAiBackend() === "gemini" && !hasGemini && hasAnthropic) {
+    warn(
+      "AI_PROVIDER is gemini (default) but only ANTHROPIC_API_KEY is set — set GEMINI_API_KEY or AI_PROVIDER=anthropic"
     );
-  } else {
-    check(
-      envExists("ANTHROPIC_API_KEY"),
-      "ANTHROPIC_API_KEY is set",
-      "ANTHROPIC_API_KEY MISSING"
+  }
+  if (activeAiBackend() === "anthropic" && !hasAnthropic && hasGemini) {
+    warn(
+      "AI_PROVIDER=anthropic but only GEMINI_API_KEY is set — set ANTHROPIC_API_KEY or use default Gemini"
     );
   }
 

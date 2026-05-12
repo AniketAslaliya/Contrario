@@ -51,7 +51,8 @@ The conflict map IS the product. That's the insight no competitor has.
 | M04 PDF Upload | ✅ Done | `PdfUpload` · `parse-pdf` route · `extractPitchPdfAction` · Storage optional (auth) · sessionStorage handoff for M06 |
 | M05 Text Paste | ✅ Done | `TextInput` · tab toggle · 100–5000 · `sessionStorage` · `title` helper |
 | M06 Analysis Engine | ✅ Done | `POST /api/analyze` SSE · parallel `Promise.all` + `lib/persona-stream` · guest 1-run |
-| M07 Conflict Map UI | 🔲 Not started | CORE — most important UI |
+| M07 Conflict Map UI | ✅ Done | `lib/synthesis/post-analysis` · `ConflictMap` · SSE `synthesis` after streams |
+| M08 Red Flags Summary | ✅ Done | `RedFlagsSummary` · max 3 consensus rows with fixes |
 
 ---
 
@@ -71,7 +72,7 @@ The conflict map IS the product. That's the insight no competitor has.
 ## ARCHITECTURE DECISIONS (DON'T CHANGE WITHOUT REASON)
 1. **Parallel API calls** — All 3 persona prompts fired simultaneously using `Promise.all()`. NEVER chain them.
 2. **Streaming** — Use the **active** provider’s streaming API (Gemini or Anthropic). User sees token-by-token output per persona. Same parallel `Promise.all` / `Promise.allSettled` contract.
-3. **Edge runtime** on Vercel for analysis route — lowest latency.
+3. **Node.js runtime** for `/api/analyze` — Persona streaming + PDF deps need Node (not Edge).
 4. **PDF parsed server-side** in a Next.js server action — client never sees the raw file after upload.
 5. **Auth data in Supabase** — User role lives in `public.profiles` (service-role writes). Full analysis history arrives with M06/M10. Guest mode stays localStorage for the free-analysis counter.
 
@@ -176,6 +177,12 @@ NEXT_PUBLIC_SUPABASE_DECK_BUCKET=deck-uploads
 - **Decisions:** Serialized SSE writes for thread-safe multiplexing; Anthropic uses MessageStream `text` events; API input min 40 chars (paste tab still 100+ for UX).
 - **Next session should start with:** M07 conflict map zones + M08 consensus red flags on top of streaming output.
 - **Blockers:** `node scripts/validate.js --module=M06` requires `GEMINI_API_KEY` (default AI) or `AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY` in `.env.local`.
+
+### Session 007 — May 12, 2026
+- **Done:** M07 + M08 — `synthesizeConflictAndFlags()` runs after `Promise.all` persona streams; SSE events `synthesis` / `synthesisError`; `AnalyzeWorkspace` renders `ConflictMap` + `RedFlagsSummary`; score badges from `extractScoreFromMarkdown`; `scripts/validate.js` M06–M08 + `--pre-deploy` use OR-key LLM check; `docs/ROADMAP.md` updated.
+- **Decisions:** Second-pass synthesis uses the same active LLM as M06 (Gemini JSON mode vs Claude); conflict map bullets capped in normalizer.
+- **Next session should start with:** M09 per-slide breakdown or M10 dashboard history (per ROADMAP).
+- **Blockers:** None for local dev beyond having the key that matches `AI_PROVIDER`.
 
 ---
 

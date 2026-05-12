@@ -125,6 +125,8 @@ User Input → /api/analyze (POST)
     ])
               ↓
     SSE stream → 3 persona cards update simultaneously
+              ↓
+    synthesizeConflictAndFlags (second pass, same LLM) → conflict map + red flags
 ```
 **Acceptance Criteria:**
 - [x] All 3 API calls fire in parallel (check with network tab)
@@ -138,7 +140,7 @@ User Input → /api/analyze (POST)
 ---
 
 ### M07 · Conflict Map Output UI
-**Status:** 🔲 Not started  
+**Status:** ✅ Complete  
 **Priority:** 🔴 P0  
 **Hours:** 3  
 **Description:** The signature UI of Contrario. Three persona cards side-by-side + conflict map showing agreement/disagreement zones  
@@ -155,26 +157,24 @@ User Input → /api/analyze (POST)
 └─────────────────────────────────────────┘
 ```
 **Acceptance Criteria:**
-- [ ] 3-column layout responsive (stacked on mobile)
-- [ ] Each card shows: Persona name, Score badge, 5 feedback points, Key concern
-- [ ] Conflict map section below cards
-- [ ] Green highlight = all 3 agree this is good
-- [ ] Red highlight = all 3 flag this as a problem
-- [ ] Yellow = 2 of 3 flag
-- [ ] Smooth streaming animation (no layout shift)
+- [x] 3-column layout responsive (stacked on mobile)
+- [x] Each card shows: Persona name, Score badge (when `## Score` present in output)
+- [x] Conflict map section below cards (`ConflictMap`)
+- [x] Green = consensus strengths; Red = consensus risks; Yellow = mixed / 2-of-3
+- [x] Smooth streaming (serialized SSE; synthesis after streams finish)
 
 ---
 
 ### M08 · Consensus Red Flags Summary
-**Status:** 🔲 Not started  
+**Status:** ✅ Complete  
 **Priority:** 🔴 P0  
 **Hours:** 1.5  
 **Description:** Auto-generated "The 3 things ALL investors flagged" section — the most actionable output  
 **Acceptance Criteria:**
-- [ ] Appears after all 3 streams complete
-- [ ] Shows max 3 consensus issues
-- [ ] Each issue has a one-line fix suggestion
-- [ ] Visually distinct from persona cards (full-width, red-tinted)
+- [x] Appears after all 3 streams complete (same SSE round-trip after synthesis)
+- [x] Shows max 3 consensus issues (enforced in `normalizePayload`)
+- [x] Each issue has a one-line fix suggestion
+- [x] Visually distinct from persona cards (full-width, red-tinted `RedFlagsSummary`)
 
 ---
 

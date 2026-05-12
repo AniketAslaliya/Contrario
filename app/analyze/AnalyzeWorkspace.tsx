@@ -9,8 +9,12 @@ import {
   PASTE_MIN_CHARS,
   STORAGE_PENDING_TEXT,
 } from "@/lib/analyze-input";
+import type { SynthesisPayload } from "@/lib/synthesis/post-analysis";
+import { extractScoreFromMarkdown } from "@/lib/parse-persona-output";
 import type { PersonaId } from "@/lib/personas";
 import { PERSONA_IDS } from "@/lib/personas";
+import { ConflictMap } from "@/components/conflict-map/ConflictMap";
+import { RedFlagsSummary } from "@/components/RedFlagsSummary";
 import { PersonaStreamColumn } from "@/components/persona-card/PersonaStreamColumn";
 import { PdfUpload } from "@/components/upload/PdfUpload";
 import { TextInput } from "@/components/upload/TextInput";
@@ -42,8 +46,23 @@ export function AnalyzeWorkspace() {
   const [banner, setBanner] = useState<string | null>(null);
   const [inputRev, setInputRev] = useState(0);
   const [guestRev, setGuestRev] = useState(0);
+  const [synthesis, setSynthesis] = useState<SynthesisPayload | null>(null);
+  const [synthesisError, setSynthesisError] = useState<string | null>(null);
+
+  const scores = useMemo(() => {
+    const s: Record<PersonaId, string | null> = {
+      "scale-chaser": null,
+      "conviction-buyer": null,
+      "reality-check": null,
+    };
+    for (const id of PERSONA_IDS) {
+      s[id] = extractScoreFromMarkdown(outputs[id]);
+    }
+    return s;
+  }, [outputs]);
 
   const guestBlocked = useMemo(() => {
+    void guestRev;
     if (typeof window === "undefined") return false;
     if (status === "authenticated") return false;
     try {
@@ -63,6 +82,7 @@ export function AnalyzeWorkspace() {
   }, []);
 
   const canRun = useCallback(() => {
+    void inputRev;
     const text = readPitchText();
     if (text.length < ANALYSIS_INPUT_MIN_CHARS) return false;
     if (tab === "paste" && text.length < PASTE_MIN_CHARS) return false;
@@ -92,6 +112,8 @@ export function AnalyzeWorkspace() {
     setRunning(true);
     setOutputs(emptyOutputs());
     setErr(emptyErrs());
+    setSynthesis(null);
+    setSynthesisError(null);
 
     try {
       const res = await fetch("/api/analyze", {
@@ -134,6 +156,13 @@ export function AnalyzeWorkspace() {
             payload = JSON.parse(line) as Record<string, unknown>;
           } catch {
             continue;
+          }
+
+          if (payload.synthesis && typeof payload.synthesis === "object") {
+            setSynthesis(payload.synthesis as SynthesisPayload);
+          }
+          if (typeof payload.synthesisError === "string") {
+            setSynthesisError(payload.synthesisError);
           }
 
           const pid = payload.persona as string | undefined;
@@ -234,9 +263,23 @@ export function AnalyzeWorkspace() {
             text={outputs[id]}
             streaming={running}
             error={err[id]}
+            score={scores[id]}
           />
         ))}
       </div>
+
+      {synthesisError ? (
+        <p className="text-center text-sm text-persona-scale mt-8 max-w-lg mx-auto">
+          {synthesisError}
+        </p>
+      ) : null}
+
+      {synthesis ? (
+        <>
+          <ConflictMap data={synthesis.conflictMap} visible />
+          <RedFlagsSummary flags={synthesis.redFlags} visible />
+        </>
+      ) : null}
     </div>
   );
 }
