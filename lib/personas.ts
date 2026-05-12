@@ -19,8 +19,6 @@ export function displayNameForPersona(id: PersonaId): string {
       return "The Conviction Buyer";
     case "reality-check":
       return "The Reality Check";
-    default:
-      return id;
   }
 }
 
