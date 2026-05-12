@@ -13,6 +13,7 @@ import {
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
+export const dynamic = "force-dynamic";
 
 /**
  * SSE stream events:

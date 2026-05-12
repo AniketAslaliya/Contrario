@@ -88,6 +88,18 @@ function readPendingMeta(): { title: string; source: "paste" | "pdf" } {
   }
 }
 
+function parseDataLine(line: string): Record<string, unknown> | null {
+  const t = line.trimStart();
+  if (!t.startsWith("data:")) return null;
+  const raw = t.slice(5).trimStart();
+  if (!raw || raw === "[DONE]") return null;
+  try {
+    return JSON.parse(raw) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 export function AnalyzeWorkspace() {
   const { status } = useSession();
   const [tab, setTab] = useState<Tab>("pdf");
@@ -191,6 +203,7 @@ export function AnalyzeWorkspace() {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        cache: "no-store",
         body: JSON.stringify({
           text,
           slides: slideOutline ?? undefined,
@@ -209,79 +222,72 @@ export function AnalyzeWorkspace() {
         );
       }
 
-      const reader = res.body!.getReader();
+      if (!res.body) {
+        throw new Error("No response body — streaming not supported in this browser.");
+      }
+
+      const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
+        if (value) {
+          buffer += decoder.decode(value, { stream: true });
+        }
+        if (done) {
+          buffer += decoder.decode();
+        }
+
+        const lines = buffer.split(/\r?\n/);
+        if (done) {
+          buffer = "";
+        } else {
+          buffer = lines.pop() ?? "";
+        }
 
         for (const line of lines) {
-          if (!line.startsWith("data:")) continue;
-          const raw = line.slice(5).trim();
-          if (!raw || raw === "[DONE]") continue;
-          try {
-            const event = JSON.parse(raw) as Record<string, unknown>;
+          const event = parseDataLine(line);
+          if (!event) continue;
 
-            if (typeof event.synthesisError === "string") {
-              setSynthesisError(event.synthesisError);
-            }
+          if (event.fatal && event.error != null) {
+            throw new Error(String(event.error));
+          }
+          if (typeof event.synthesisError === "string") {
+            setSynthesisError(event.synthesisError);
+          }
 
-            if (event.persona && event.delta && isPersonaId(String(event.persona))) {
-              const pid = String(event.persona) as PersonaId;
-              const delta = String(event.delta);
-              localOutputs[pid] = (localOutputs[pid] ?? "") + delta;
+          const personaIdRaw = event.persona != null ? String(event.persona) : "";
+          if (personaIdRaw && isPersonaId(personaIdRaw)) {
+            const pid = personaIdRaw;
+            if (typeof event.delta === "string" && event.delta.length > 0) {
+              localOutputs[pid] = (localOutputs[pid] ?? "") + event.delta;
               setPersonaOutputs((prev) => ({
                 ...prev,
-                [pid]: (prev[pid] ?? "") + delta,
+                [pid]: (prev[pid] ?? "") + event.delta,
               }));
             }
-            if (event.persona && event.done && isPersonaId(String(event.persona))) {
-              const pid = String(event.persona) as PersonaId;
+            if (event.done === true) {
               setPersonaStatus((prev) => ({ ...prev, [pid]: "done" }));
             }
-            if (event.persona && event.error) {
-              const pid = String(event.persona);
-              if (isPersonaId(pid)) {
-                setErr((e) => ({
-                  ...e,
-                  [pid]: String(event.error),
-                }));
-              }
+            if (event.error != null) {
+              setErr((e) => ({
+                ...e,
+                [pid]: String(event.error),
+              }));
             }
-            if (event.synthesis != null && typeof event.synthesis === "string") {
-              setSynthesis(event.synthesis);
-            }
-            if (event.finished) {
-              setIsAnalyzing(false);
-              setPersonaStatus(donePersonaStatus());
-            }
-          } catch {
-            /* skip malformed line */
           }
-        }
-      }
 
-      if (buffer.trim().startsWith("data:")) {
-        const raw = buffer.slice(5).trim();
-        if (raw && raw !== "[DONE]") {
-          try {
-            const event = JSON.parse(raw) as Record<string, unknown>;
-            if (event.synthesis != null && typeof event.synthesis === "string") {
-              setSynthesis(event.synthesis);
-            }
-            if (event.finished) {
-              setIsAnalyzing(false);
-              setPersonaStatus(donePersonaStatus());
-            }
-          } catch {
-            /* ignore trailing garbage */
+          if (event.synthesis != null && typeof event.synthesis === "string") {
+            setSynthesis(event.synthesis);
+          }
+          if (event.finished === true) {
+            setIsAnalyzing(false);
+            setPersonaStatus(donePersonaStatus());
           }
         }
+
+        if (done) break;
       }
 
       if (status === "authenticated") {

@@ -52,7 +52,22 @@ export function buildAnalyzeSseStream(params: {
 
   return new ReadableStream({
     async start(controller) {
-      const genAI = getGeminiClient();
+      /** First byte ASAP — avoids idle proxies buffering until Gemini returns, proves the route is alive. */
+      send(controller, { streamReady: true });
+
+      let genAI: ReturnType<typeof getGeminiClient>;
+      try {
+        genAI = getGeminiClient();
+      } catch (e) {
+        send(controller, {
+          fatal: true,
+          error: e instanceof Error ? e.message : "Gemini client error",
+        });
+        send(controller, { finished: true });
+        controller.close();
+        return;
+      }
+
       const hasSlides = Boolean(
         slidesForStream && slidesForStream.length >= 2
       );
@@ -66,8 +81,9 @@ export function buildAnalyzeSseStream(params: {
         "reality-check": "",
       };
 
-      await Promise.allSettled(
-        PERSONA_IDS.map(async (personaId) => {
+      try {
+        await Promise.allSettled(
+          PERSONA_IDS.map(async (personaId) => {
           try {
             const systemPrompt = getPersonaSystemPromptWithSlides(
               personaId,
@@ -102,8 +118,14 @@ export function buildAnalyzeSseStream(params: {
               done: true,
             });
           }
-        })
-      );
+          })
+        );
+      } catch (e) {
+        send(controller, {
+          fatal: true,
+          error: e instanceof Error ? e.message : "Persona streams failed",
+        });
+      }
 
       try {
         const synthesisPrompt = `
