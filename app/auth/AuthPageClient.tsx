@@ -7,12 +7,15 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type Props = {
   googleEnabled: boolean;
+  /** Set when only one of GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET is configured */
+  googleEnvWarning?: string;
   magicLinkEnabled: boolean;
   callbackError?: string;
 };
 
 export function AuthPageClient({
   googleEnabled,
+  googleEnvWarning,
   magicLinkEnabled,
   callbackError,
 }: Props) {
@@ -103,6 +106,15 @@ export function AuthPageClient({
               Sign in to save analyses, history, and shared reports.
             </p>
           </div>
+
+          {googleEnvWarning ? (
+            <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200/80 text-sm text-amber-950 leading-relaxed">
+              <p className="font-medium text-amber-900 mb-1">
+                Google sign-in not active yet
+              </p>
+              <p>{googleEnvWarning}</p>
+            </div>
+          ) : null}
 
           {!magicLinkEnabled ? (
             <div className="p-4 rounded-2xl bg-cream-100 border border-cream-400 text-sm text-ink-700 leading-relaxed">

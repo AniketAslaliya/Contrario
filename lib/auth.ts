@@ -5,6 +5,7 @@ import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase-admin";
 
 const providers: NextAuthOptions["providers"] = [];
 
+/** Google “Continue” uses NextAuth’s Google OAuth (env vars below), not Supabase’s Google Auth UI toggle. */
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   providers.push(
     GoogleProvider({
