@@ -5,12 +5,16 @@ import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase-admin";
 
 const providers: NextAuthOptions["providers"] = [];
 
+/** Trim prevents copy/paste whitespace breaking Google’s OAuth client lookup (401 invalid_client). */
+const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim();
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
+
 /** Google “Continue” uses NextAuth’s Google OAuth (env vars below), not Supabase’s Google Auth UI toggle. */
-if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+if (googleClientId && googleClientSecret) {
   providers.push(
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
     })
   );
 }
