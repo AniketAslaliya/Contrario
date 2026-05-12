@@ -63,7 +63,7 @@ The conflict map IS the product. That's the insight no competitor has.
 ## TECH STACK (DECIDED)
 - **Framework:** Next.js 14, App Router
 - **Styling:** Tailwind CSS + custom warm theme
-- **AI:** **`POST /api/analyze`** uses **Google Gemini 2.0 Flash** (`GEMINI_API_KEY`, optional `GEMINI_MODEL`, defaults in `lib/gemini.ts`) — SSE + parallel streams in `lib/analyze-sse.ts`. **Anthropic** remains available via `lib/ai-provider.ts` for other routes/helpers when configured. Vercel: set `X-Accel-Buffering: no` on SSE responses to reduce buffering.
+- **AI:** **`POST /api/analyze`** uses **Google Gemini 2.5 Flash** (`GEMINI_API_KEY`, optional `GEMINI_MODEL`, defaults in `lib/gemini.ts`) — SSE + parallel streams in `lib/analyze-sse.ts`. **Anthropic** remains available via `lib/ai-provider.ts` for other routes/helpers when configured. Vercel: set `X-Accel-Buffering: no` on SSE responses to reduce buffering.
 - **PDF Parse:** `pdf-parse` (Node.js, server action)
 - **Auth:** NextAuth.js (Google OAuth + Email magic link)
 - **DB:** Supabase (Postgres)

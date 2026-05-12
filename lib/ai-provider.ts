@@ -39,7 +39,7 @@ export function assertActiveLlmConfigured(): void {
 export function assertGeminiConfiguredForAnalyze(): void {
   if (!process.env.GEMINI_API_KEY?.trim()) {
     throw new Error(
-      "GEMINI_API_KEY is required for analysis (Gemini 2.0 Flash streaming)."
+      "GEMINI_API_KEY is required for analysis (Gemini 2.5 Flash streaming)."
     );
   }
 }
