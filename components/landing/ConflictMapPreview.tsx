@@ -74,11 +74,11 @@ export function ConflictMapPreview() {
             </div>
           </div>
         </div>
-        <div className="rounded-xl border border-red-500/20 bg-red-950/10 p-5 text-center">
-          <p className="text-xs uppercase tracking-widest text-red-400 mb-1">
+        <div className="rounded-[1.25rem] border border-cream-400 border-l-4 border-l-persona-scale bg-cream-100/90 p-6 md:p-7 text-left shadow-sm">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-ink-400 mb-2 font-sans">
             All 3 flagged this
           </p>
-          <p className="text-sm text-red-200/90">
+          <p className="font-serif text-lg text-ink leading-snug">
             &ldquo;No CAC or payback period mentioned. This is the single blocker
             across all three investor lenses.&rdquo;
           </p>
