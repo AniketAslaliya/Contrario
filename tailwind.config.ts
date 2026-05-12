@@ -61,8 +61,13 @@ const config: Config = {
         },
       },
       fontFamily: {
-        serif: ["'Cormorant Garamond'", "'Georgia'", "serif"],
-        sans: ["'Inter'", "system-ui", "-apple-system", "sans-serif"],
+        serif: [
+          "var(--font-cormorant)",
+          "'Cormorant Garamond'",
+          "Georgia",
+          "serif",
+        ],
+        sans: ["var(--font-inter)", "system-ui", "-apple-system", "sans-serif"],
       },
       borderRadius: {
         "2xl": "1rem",
@@ -82,6 +87,7 @@ const config: Config = {
         "slide-up": "slideUp 0.7s ease-out forwards",
         "float": "float 6s ease-in-out infinite",
         "marquee": "marquee 25s linear infinite",
+        "shell-dot": "shellDot 1.15s ease-in-out infinite",
       },
       keyframes: {
         fadeUp: {
@@ -103,6 +109,13 @@ const config: Config = {
         marquee: {
           "0%": { transform: "translateX(0%)" },
           "100%": { transform: "translateX(-50%)" },
+        },
+        shellDot: {
+          "0%, 80%, 100%": {
+            opacity: "0.35",
+            transform: "scale(0.92)",
+          },
+          "40%": { opacity: "1", transform: "scale(1)" },
         },
       },
     },
