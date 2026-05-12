@@ -5,7 +5,7 @@
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
 ![Status](https://img.shields.io/badge/status-active--development-brightgreen)
-![Stack](https://img.shields.io/badge/stack-Next.js%2014%20%7C%20Claude%20%7C%20Supabase-blueviolet)
+![Stack](https://img.shields.io/badge/stack-Next.js%2014%20%7C%20AI%20%7C%20Supabase-blueviolet)
 
 ---
 
@@ -44,7 +44,7 @@ Contrario fires **three investor archetypes simultaneously** against your pitch 
 | Layer | Technology |
 |---|---|
 | Framework | Next.js 14 (App Router) |
-| AI Engine | **Anthropic Claude** (`claude-sonnet-4-20250514` via `ANTHROPIC_API_KEY`); optional **Gemini** with `AI_PROVIDER=gemini` + `GEMINI_API_KEY` |
+| AI Engine | **Gemini** (default for `/api/analyze` — `GEMINI_API_KEY`) and/or **Anthropic** via `lib/ai-provider.ts` and `.env.example` |
 | Styling | Tailwind CSS |
 | Auth | NextAuth.js |
 | Database | Supabase |
@@ -142,6 +142,7 @@ That runs each `*.sql` file in **`supabase/migrations/`** in sorted (chronologic
 4. `20260515000000_m14_m25_platform.sql`
 5. `20260515100000_analyses_starred.sql`
 6. `20260516100000_org_fk_indexes.sql`
+7. `20260517100000_profiles_onboarding_deck.sql` — **`display_name`** and last-uploaded-deck columns on `profiles`. **Apply this in production** for preferred-name greetings and the “last PDF” workspace card. The app tolerates missing columns (onboarding still saves role), but profile extras stay disabled until this migration runs.
 
 **Optional:** [Supabase CLI](https://supabase.com/docs/guides/cli) with a linked project or `--db-url` (same credential rules — keep it local).
 

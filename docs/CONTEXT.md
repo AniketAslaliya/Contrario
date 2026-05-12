@@ -210,6 +210,11 @@ NEXT_PUBLIC_SUPABASE_DECK_BUCKET=deck-uploads
 - **Prod/Vercel:** Set **`AI_PROVIDER=anthropic`**, **`ANTHROPIC_API_KEY`**, and **`GEMINI_API_KEY`** only if using `AI_PROVIDER=gemini`.
 - **Next:** None — ship.
 
+### Session 012 — May 12, 2026
+- **Done:** **`lib/profile.ts` production hardening** — `upsertProfile` writes base `profiles` columns only, then optional `display_name` update; ignores missing-column errors for onboarding without `20260517100000` migration. **`getProfileByUserId`** falls back to a minimal `select` when PostgREST errors on schema cache. **`updateLastDeckForUser`** no-ops softly if last-deck columns missing. **README** — tech stack + badge de-vendorized to “AI”; Supabase manual migration list includes **`20260517100000_profiles_onboarding_deck.sql`**. Error matcher tightened to `profiles` + column context (less false-positive).
+- **Prod:** Run migration **7** in hosted Supabase for full display name + last-deck UX.
+- **Next:** None.
+
 ---
 
 ## RULES FOR AI ASSISTANTS READING THIS FILE
