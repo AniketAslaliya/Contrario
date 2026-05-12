@@ -33,6 +33,20 @@ export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
+  /** If Google OAuth is misconfigured to return to / instead of /api/auth/callback/google, forward the query. */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.location.pathname !== "/") return;
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    const state = params.get("state");
+    if (code && state) {
+      window.location.replace(
+        `/api/auth/callback/google?${params.toString()}`
+      );
+    }
+  }, []);
+
   const aboutRef = useReveal();
   const statsRef = useReveal();
   const ctaRef = useReveal();

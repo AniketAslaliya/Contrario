@@ -81,7 +81,7 @@ node scripts/validate.js
 1. Push this repo to GitHub (see remote in `git remote -v`).
 2. In Vercel: **Import** the repo, framework **Next.js**, build `npm run build`, output `.next`.
 3. Add **Environment variables** for Production / Preview (match `.env.example`):
-   - `NEXTAUTH_SECRET`, `NEXTAUTH_URL` (Production must be `https://<your-domain>`)
+   - `NEXTAUTH_SECRET` (**required**). `NEXTAUTH_URL` — set to your real origin (`https://<project>.vercel.app` or custom domain, no trailing slash). If you **omit** `NEXTAUTH_URL` on Vercel, the app derives it from `VERCEL_URL` at build/runtime (see `next.config.mjs`). **Custom domains:** set `NEXTAUTH_URL` explicitly to `https://your-custom-domain.com`.
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (email magic link: enable **Email** in Supabase Auth; add redirect `https://<your-domain>/auth/callback`)
    - Optional: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (only if you want “Sign in with Google”)
    - `ANTHROPIC_API_KEY`, optional `ANTHROPIC_MODEL` (default `claude-sonnet-4-20250514`); optional `AI_PROVIDER=gemini` + `GEMINI_API_KEY` + `GEMINI_MODEL` if you use Google instead of the default Anthropic backend
@@ -94,13 +94,13 @@ node scripts/validate.js
 Production was returning **`{"message":"There is a problem with the server configuration..."}`** from **`/api/auth/providers`** when **`NEXTAUTH_SECRET`** was missing in Vercel. NextAuth needs this on every deploy:
 
 1. **`NEXTAUTH_SECRET`** — generate locally with `openssl rand -base64 32` (or any long random string), add under Vercel → Project → Settings → Environment Variables for **Production** (and Preview if you use it), then **Redeploy**.
-2. **`NEXTAUTH_URL`** — must match the deployment URL exactly, e.g. `https://contrario-app.vercel.app` (no trailing slash). Wrong origin breaks OAuth callbacks and cookies.
+2. **`NEXTAUTH_URL`** — must match the deployment origin (no trailing slash). Wrong origin breaks OAuth callbacks and cookies. On Vercel you can rely on automatic `https://$VERCEL_URL` when this var is unset (`next.config.mjs`); use an explicit value for a **custom domain**.
 3. **Email magic link** — if `/auth` shows a warning about Supabase keys, set **`NEXT_PUBLIC_SUPABASE_URL`** and **`NEXT_PUBLIC_SUPABASE_ANON_KEY`** on Vercel, plus **`SUPABASE_SERVICE_ROLE_KEY`** (required for verifying the magic-link token server-side). In Supabase → Authentication → URL Configuration, add **`https://<your-domain>/auth/callback`** (and **`http://localhost:3000/auth/callback`** for local dev) to **Redirect URLs**. **Important:** Request the link and open it **on the same browser/device** — PKCE stores a verifier when you submit your email.
 4. After changing env vars, trigger a **new deployment** so the runtime picks them up.
 
 ### Live deploy (CLI-linked project)
 
-If you use `npx vercel link`, production may be served at **`https://contrario-app.vercel.app`** (check your Vercel dashboard). Set **`NEXTAUTH_URL`** to that exact HTTPS URL in Vercel → Settings → Environment Variables. For Google OAuth only, add **`https://<your-domain>/api/auth/callback/google`** under **Google Cloud → OAuth redirect URIs**. Email magic links use Supabase redirect **`https://<your-domain>/auth/callback`** (see above).
+If you use `npx vercel link`, production is often **`https://<your-project>.vercel.app`**. You may **omit** `NEXTAUTH_URL` in Vercel so it defaults to `https://$VERCEL_URL` from `next.config.mjs`; with a **custom domain**, set **`NEXTAUTH_URL`** to `https://your-domain.com` explicitly. For Google OAuth, add **`https://<deployment-host>/api/auth/callback/google`** in **Google Cloud → OAuth redirect URIs** (and **`http://localhost:3000/api/auth/callback/google`** for local dev). Email magic links use Supabase **`https://<host>/auth/callback`** (see above).
 
 ### Supabase database security (not a bug)
 
