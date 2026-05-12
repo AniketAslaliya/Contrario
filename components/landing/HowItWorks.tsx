@@ -13,7 +13,7 @@ const steps = [
     number: "02",
     title: "Analyze",
     description:
-      "Three investor archetypes fire simultaneously via parallel Claude API calls. No waiting. Streaming tokens arrive in real-time.",
+      "Three investor archetypes fire simultaneously via parallel AI API calls. No waiting. Streaming tokens arrive in real-time.",
   },
   {
     number: "03",

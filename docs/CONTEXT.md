@@ -80,6 +80,9 @@ The conflict map IS the product. That's the insight no competitor has.
 4. **PDF parsed server-side** in a Next.js server action — client never sees the raw file after upload.
 5. **Auth data in Supabase** — User role lives in `public.profiles` (service-role writes). Analysis history in `public.analyses` (M10). Guest mode stays localStorage for the free-analysis counter.
 
+### Future — user satisfaction signals & trainable models (not shipped yet)
+The live product uses a **hosted API** (Gemini today for `/api/analyze`) — weights are **not** updated on each request. A practical path to “learn from users” is **offline**: collect structured satisfaction (e.g. thumbs, section ratings, optional free-text) tied to analysis IDs → export **preference / outcome labels** → periodic **fine-tuning or preference tuning** (DPO / reward modeling) on **open-weight** models, often trained **outside** Vercel (GPU jobs, Hugging Face training pipelines, or Vertex). **Hugging Face** is a strong fit for **open models, datasets, and training jobs**; **Vercel** remains the wrong place to **host** heavy inference/training, not the wrong place to **call** a HF Inference endpoint from a server route if latency and SLAs fit. True online reinforcement from every click is possible in theory but is **infrastructure-heavy**; most teams approximate it with **feedback logging + batched model updates**.
+
 ---
 
 ## FOLDER STRUCTURE (TARGET)
@@ -92,7 +95,7 @@ contrario/
 │   ├── dashboard/            # M10: Founder dashboard
 │   ├── analyze/              # M06: Core analysis page
 │   └── api/
-│       ├── analyze/          # Parallel Claude calls
+│       ├── analyze/          # Parallel AI streams (Gemini SSE)
 │       └── parse-pdf/        # PDF extraction
 ├── components/
 │   ├── ui/                   # Shared primitives
