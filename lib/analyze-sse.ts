@@ -1,6 +1,10 @@
-import type { PersonaId } from "@/lib/personas";
-import { streamPersonaText } from "@/lib/persona-stream";
-import { synthesizeConflictAndFlags } from "@/lib/synthesis/post-analysis";
+import { getGeminiClient, DEFAULT_GEMINI_MODEL } from "@/lib/gemini";
+import {
+  buildUserPromptForPitch,
+  getPersonaSystemPromptWithSlides,
+  PERSONA_IDS,
+  type PersonaId,
+} from "@/lib/personas";
 import type { PitchSlide } from "@/lib/slide-split";
 
 export function parseSlidesPayload(body: unknown): PitchSlide[] | null {
@@ -24,7 +28,11 @@ export function parseSlidesPayload(body: unknown): PitchSlide[] | null {
   return out.length >= 2 ? out : null;
 }
 
-/** Shared SSE pipeline for /api/analyze and /api/v1/analyze (M25). */
+/**
+ * SSE pipeline: 3 personas via Gemini Flash streaming in parallel, then one synthesis call.
+ * Events: `{ persona, delta }`, `{ persona, done: true }`, `{ synthesis: string }`,
+ * `{ synthesisError }`, `{ finished: true }`.
+ */
 export function buildAnalyzeSseStream(params: {
   text: string;
   slidesForStream: PitchSlide[] | null;
@@ -32,66 +40,109 @@ export function buildAnalyzeSseStream(params: {
 }): ReadableStream<Uint8Array> {
   const { text, slidesForStream, indiaContext } = params;
   const encoder = new TextEncoder();
-  let writeSerial = Promise.resolve();
 
-  const safeWrite = (
+  const send = (
     controller: ReadableStreamDefaultController<Uint8Array>,
-    payload: unknown
+    data: object
   ) => {
-    const line = `data: ${JSON.stringify(payload)}\n\n`;
-    writeSerial = writeSerial.then(() => {
-      controller.enqueue(encoder.encode(line));
-    });
-    return writeSerial;
+    controller.enqueue(
+      encoder.encode(`data: ${JSON.stringify(data)}\n\n`)
+    );
   };
 
-  const buffers: Record<PersonaId, string> = {
-    "scale-chaser": "",
-    "conviction-buyer": "",
-    "reality-check": "",
-  };
-
-  async function runOnePersona(
-    controller: ReadableStreamDefaultController<Uint8Array>,
-    id: PersonaId
-  ) {
-    try {
-      for await (const delta of streamPersonaText(id, text, {
-        slides: slidesForStream ?? undefined,
-        indiaContext,
-      })) {
-        buffers[id] += delta;
-        await safeWrite(controller, { persona: id, delta });
-      }
-      await safeWrite(controller, { persona: id, done: true });
-    } catch (e) {
-      await safeWrite(controller, {
-        persona: id,
-        error: e instanceof Error ? e.message : "Stream failed",
-      });
-    }
-  }
-
-  return new ReadableStream<Uint8Array>({
+  return new ReadableStream({
     async start(controller) {
-      await Promise.all([
-        runOnePersona(controller, "scale-chaser"),
-        runOnePersona(controller, "conviction-buyer"),
-        runOnePersona(controller, "reality-check"),
-      ]);
-      await writeSerial;
+      const genAI = getGeminiClient();
+      const hasSlides = Boolean(
+        slidesForStream && slidesForStream.length >= 2
+      );
+      const userPrompt = buildUserPromptForPitch(text, {
+        slides: hasSlides ? slidesForStream : undefined,
+      });
+
+      const personaOutputs: Record<PersonaId, string> = {
+        "scale-chaser": "",
+        "conviction-buyer": "",
+        "reality-check": "",
+      };
+
+      await Promise.allSettled(
+        PERSONA_IDS.map(async (personaId) => {
+          try {
+            const systemPrompt = getPersonaSystemPromptWithSlides(
+              personaId,
+              hasSlides,
+              indiaContext
+            );
+
+            const model = genAI.getGenerativeModel({
+              model: DEFAULT_GEMINI_MODEL,
+              systemInstruction: systemPrompt,
+            });
+
+            const result = await model.generateContentStream({
+              contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+            });
+
+            send(controller, { persona: personaId, status: "streaming" });
+
+            for await (const chunk of result.stream) {
+              const delta = chunk.text();
+              if (delta) {
+                personaOutputs[personaId] += delta;
+                send(controller, { persona: personaId, delta });
+              }
+            }
+
+            send(controller, { persona: personaId, done: true });
+          } catch (err) {
+            send(controller, {
+              persona: personaId,
+              error: err instanceof Error ? err.message : "Persona failed",
+              done: true,
+            });
+          }
+        })
+      );
 
       try {
-        const synthesis = await synthesizeConflictAndFlags(buffers);
-        await safeWrite(controller, { synthesis });
-      } catch (e) {
-        await safeWrite(controller, {
-          synthesisError:
-            e instanceof Error ? e.message : "Conflict map synthesis failed",
+        const synthesisPrompt = `
+You are a synthesis engine. Three investors have reviewed a pitch deck.
+Here are their full responses:
+
+SCALE CHASER:
+${personaOutputs["scale-chaser"]}
+
+CONVICTION BUYER:
+${personaOutputs["conviction-buyer"]}
+
+REALITY CHECK:
+${personaOutputs["reality-check"]}
+
+Your job: identify ONLY the issues ALL THREE flagged. Return EXACTLY this markdown:
+
+## Critical consensus (all 3 agree)
+- [issue 1 — one sentence, be specific]
+- [issue 2]
+- [issue 3 — max 3 items]
+
+## Where they diverge
+One short sentence per disagreement. Max 2.
+
+Be brutally concise. No preamble. No repetition.
+`.trim();
+
+        const synthModel = genAI.getGenerativeModel({
+          model: DEFAULT_GEMINI_MODEL,
         });
+        const synthResult = await synthModel.generateContent(synthesisPrompt);
+        const synthesis = synthResult.response.text();
+        send(controller, { synthesis });
+      } catch {
+        send(controller, { synthesisError: "Conflict map generation failed" });
       }
 
-      await safeWrite(controller, { finished: true });
+      send(controller, { finished: true });
       controller.close();
     },
   });

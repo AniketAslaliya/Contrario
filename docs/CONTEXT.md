@@ -50,7 +50,7 @@ The conflict map IS the product. That's the insight no competitor has.
 | M03 Onboarding | ✅ Done | Role picker · Supabase `profiles` upsert · `/dashboard` \| `/analyze` routing · `/settings` role change |
 | M04 PDF Upload | ✅ Done | `PdfUpload` · `parse-pdf` route · `extractPitchPdfAction` · Storage optional (auth) · sessionStorage handoff for M06 |
 | M05 Text Paste | ✅ Done | `TextInput` · tab toggle · 100–5000 · `sessionStorage` · `title` helper |
-| M06 Analysis Engine | ✅ Done | `POST /api/analyze` SSE · parallel `Promise.all` + `lib/persona-stream` · guest 1-run |
+| M06 Analysis Engine | ✅ Done | `POST /api/analyze` SSE · Gemini `generateContentStream` in parallel (`Promise.allSettled` in `lib/analyze-sse.ts`) · synthesis pass · guest 1-run |
 | M07 Conflict Map UI | ✅ Done | `lib/synthesis/post-analysis` · `ConflictMap` · SSE `synthesis` after streams |
 | M08 Red Flags Summary | ✅ Done | `RedFlagsSummary` · max 3 consensus rows with fixes |
 | M09 Per-Slide Breakdown | ✅ Done | `lib/slide-split` · optional slide map + **Per slide** persona sections |
@@ -63,7 +63,7 @@ The conflict map IS the product. That's the insight no competitor has.
 ## TECH STACK (DECIDED)
 - **Framework:** Next.js 14, App Router
 - **Styling:** Tailwind CSS + custom warm theme
-- **AI:** **Anthropic Claude** (`ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` optional, default `claude-sonnet-4-20250514`) via `lib/ai-provider.ts` (default backend). **Gemini** optional with `AI_PROVIDER=gemini` + `GEMINI_API_KEY`. `scripts/validate.js` enforces the key for the active backend.
+- **AI:** **`POST /api/analyze`** uses **Google Gemini 2.0 Flash** (`GEMINI_API_KEY`, optional `GEMINI_MODEL`, defaults in `lib/gemini.ts`) — SSE + parallel streams in `lib/analyze-sse.ts`. **Anthropic** remains available via `lib/ai-provider.ts` for other routes/helpers when configured. Vercel: set `X-Accel-Buffering: no` on SSE responses to reduce buffering.
 - **PDF Parse:** `pdf-parse` (Node.js, server action)
 - **Auth:** NextAuth.js (Google OAuth + Email magic link)
 - **DB:** Supabase (Postgres)

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { assertActiveLlmConfigured } from "@/lib/ai-provider";
+import { assertGeminiConfiguredForAnalyze } from "@/lib/ai-provider";
 import {
   ANALYSIS_INPUT_MAX_CHARS,
   ANALYSIS_INPUT_MIN_CHARS,
@@ -18,7 +18,7 @@ export const maxDuration = 300;
  * SSE stream events:
  * - `{ persona, delta }` — token deltas
  * - `{ persona, done: true }` — persona stream complete
- * - `{ synthesis }` — conflict map + red flags
+ * - `{ synthesis }` — conflict map (markdown string)
  * - `{ synthesisError }` — synthesis failed
  * - `{ finished: true }` — end of response
  */
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    assertActiveLlmConfigured();
+    assertGeminiConfiguredForAnalyze();
   } catch (e) {
     return Response.json(
       {
@@ -80,6 +80,7 @@ export async function POST(req: NextRequest) {
       "Content-Type": "text/event-stream; charset=utf-8",
       "Cache-Control": "no-cache, no-transform",
       Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
     },
   });
 }

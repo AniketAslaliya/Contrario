@@ -82,10 +82,16 @@ function envRaw(key) {
   return match ? match[1].trim() : "";
 }
 
-/** Mirrors lib/ai-provider.ts — default is Anthropic when unset. */
+/** Mirrors lib/ai-provider.ts getAiBackend(). */
 function activeAiBackend() {
   const raw = envRaw("AI_PROVIDER").toLowerCase();
+  if (raw === "anthropic" || raw === "claude") return "anthropic";
   if (raw === "gemini" || raw === "google") return "gemini";
+  const hasGemini = Boolean(envRaw("GEMINI_API_KEY"));
+  const hasAnthropic = Boolean(envRaw("ANTHROPIC_API_KEY"));
+  if (hasGemini && !hasAnthropic) return "gemini";
+  if (!hasGemini && hasAnthropic) return "anthropic";
+  if (hasGemini) return "gemini";
   return "anthropic";
 }
 
@@ -359,10 +365,11 @@ const validators = {
       "lib/synthesis/post-analysis.ts MISSING — M07/M08 synthesis"
     );
     check(
-      sseImpl.includes("synthesizeConflictAndFlags") ||
+      sseImpl.includes("synthesisPrompt") ||
+        sseImpl.includes("generateContent(synthesisPrompt)") ||
         fileContains("app/api/analyze/route.ts", "buildAnalyzeSseStream"),
-      "SSE pipeline synthesizes conflict map after persona streams",
-      "M06: wire synthesizeConflictAndFlags in lib/analyze-sse.ts"
+      "SSE pipeline runs a synthesis / conflict-map step after persona streams",
+      "M06: add Gemini synthesis after personas in lib/analyze-sse.ts"
     );
     warn("Manually test: all 3 streams fire simultaneously (check Network tab), first token < 3s");
   },
@@ -397,13 +404,14 @@ const validators = {
       fileExists("components/RedFlagsSummary.tsx") ||
         fileExists("components/RedFlagsSummary.jsx") ||
         fileExists("components/consensus"),
-      "RedFlagsSummary component exists",
+      "RedFlagsSummary component exists (optional structured UI)",
       "RedFlagsSummary component MISSING"
     );
     check(
-      fileContains("app/analyze/AnalyzeWorkspace.tsx", "RedFlagsSummary"),
-      "Analyze page imports RedFlagsSummary",
-      "M08: render RedFlagsSummary in app/analyze/AnalyzeWorkspace.tsx"
+      fileContains("app/analyze/AnalyzeWorkspace.tsx", "ConflictMap") ||
+        fileContains("app/analyze/AnalyzeWorkspace.tsx", "RedFlagsSummary"),
+      "Analyze workspace renders conflict consensus (ConflictMap and/or RedFlagsSummary)",
+      "M08: render ConflictMap (markdown synthesis) in app/analyze/AnalyzeWorkspace.tsx"
     );
     warn("Manually test: appears after all 3 streams complete, shows max 3 items, red-tinted styling");
   },

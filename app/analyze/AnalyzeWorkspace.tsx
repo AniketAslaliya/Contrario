@@ -11,8 +11,6 @@ import {
   STORAGE_PENDING_META,
   STORAGE_PENDING_TEXT,
 } from "@/lib/analyze-input";
-import type { SynthesisPayload } from "@/lib/synthesis/post-analysis";
-import { synthesisPayloadToMarkdown } from "@/lib/synthesis/format-synthesis-markdown";
 import {
   averageScoreFromOutputs,
   extractScoreFromMarkdown,
@@ -22,7 +20,6 @@ import { PERSONA_IDS } from "@/lib/personas";
 import { detectSlidesFromPitch } from "@/lib/slide-split";
 import { saveAnalysisAction } from "@/app/analyze/save-analysis-action";
 import { ConflictMap } from "@/components/conflict-map/ConflictMap";
-import { RedFlagsSummary } from "@/components/RedFlagsSummary";
 import type { PersonaStreamStatus } from "@/components/persona-card/PersonaStreamColumn";
 import { PersonaStreamColumn } from "@/components/persona-card/PersonaStreamColumn";
 import { PdfUpload } from "@/components/upload/PdfUpload";
@@ -101,19 +98,10 @@ export function AnalyzeWorkspace() {
   const [banner, setBanner] = useState<string | null>(null);
   const [inputRev, setInputRev] = useState(0);
   const [guestRev, setGuestRev] = useState(0);
-  const [synthesisPayload, setSynthesisPayload] =
-    useState<SynthesisPayload | null>(null);
+  const [synthesis, setSynthesis] = useState<string | null>(null);
   const [synthesisError, setSynthesisError] = useState<string | null>(null);
   const [slideHint, setSlideHint] = useState<number | null>(null);
   const [indiaMode, setIndiaMode] = useState(false);
-
-  const synthesisMarkdown = useMemo(
-    () =>
-      synthesisPayload
-        ? synthesisPayloadToMarkdown(synthesisPayload)
-        : null,
-    [synthesisPayload]
-  );
 
   useEffect(() => {
     try {
@@ -188,7 +176,7 @@ export function AnalyzeWorkspace() {
     setPersonaOutputs(emptyOutputs());
     setPersonaStatus(streamingPersonaStatus());
     setErr(emptyErrs());
-    setSynthesisPayload(null);
+    setSynthesis(null);
     setSynthesisError(null);
     setSlideHint(null);
 
@@ -198,7 +186,6 @@ export function AnalyzeWorkspace() {
     }
 
     const localOutputs = emptyOutputs();
-    let localSynthesis: SynthesisPayload | null = null;
 
     try {
       const res = await fetch("/api/analyze", {
@@ -240,45 +227,59 @@ export function AnalyzeWorkspace() {
           try {
             const event = JSON.parse(raw) as Record<string, unknown>;
 
-            if (event.synthesis && typeof event.synthesis === "object") {
-              const syn = event.synthesis as SynthesisPayload;
-              localSynthesis = syn;
-              setSynthesisPayload(syn);
-            }
             if (typeof event.synthesisError === "string") {
               setSynthesisError(event.synthesisError);
             }
 
-            const pid = event.persona as string | undefined;
-            if (pid && isPersonaId(pid)) {
-              if (typeof event.delta === "string") {
-                localOutputs[pid] =
-                  (localOutputs[pid] ?? "") + event.delta;
-                setPersonaOutputs((prev) => ({
-                  ...prev,
-                  [pid]: (prev[pid] ?? "") + event.delta,
-                }));
-              }
-              if (event.done === true) {
-                setPersonaStatus((prev) => ({
-                  ...prev,
-                  [pid]: "done",
-                }));
-              }
-              if (event.error) {
+            if (event.persona && event.delta && isPersonaId(String(event.persona))) {
+              const pid = String(event.persona) as PersonaId;
+              const delta = String(event.delta);
+              localOutputs[pid] = (localOutputs[pid] ?? "") + delta;
+              setPersonaOutputs((prev) => ({
+                ...prev,
+                [pid]: (prev[pid] ?? "") + delta,
+              }));
+            }
+            if (event.persona && event.done && isPersonaId(String(event.persona))) {
+              const pid = String(event.persona) as PersonaId;
+              setPersonaStatus((prev) => ({ ...prev, [pid]: "done" }));
+            }
+            if (event.persona && event.error) {
+              const pid = String(event.persona);
+              if (isPersonaId(pid)) {
                 setErr((e) => ({
                   ...e,
                   [pid]: String(event.error),
                 }));
               }
             }
-
-            if (event.finished === true) {
+            if (event.synthesis != null && typeof event.synthesis === "string") {
+              setSynthesis(event.synthesis);
+            }
+            if (event.finished) {
               setIsAnalyzing(false);
               setPersonaStatus(donePersonaStatus());
             }
           } catch {
-            /* skip malformed SSE JSON */
+            /* skip malformed line */
+          }
+        }
+      }
+
+      if (buffer.trim().startsWith("data:")) {
+        const raw = buffer.slice(5).trim();
+        if (raw && raw !== "[DONE]") {
+          try {
+            const event = JSON.parse(raw) as Record<string, unknown>;
+            if (event.synthesis != null && typeof event.synthesis === "string") {
+              setSynthesis(event.synthesis);
+            }
+            if (event.finished) {
+              setIsAnalyzing(false);
+              setPersonaStatus(donePersonaStatus());
+            }
+          } catch {
+            /* ignore trailing garbage */
           }
         }
       }
@@ -291,7 +292,7 @@ export function AnalyzeWorkspace() {
           source: meta.source,
           inputPreview: text.slice(0, 2000),
           personaOutputs: localOutputs,
-          synthesis: localSynthesis,
+          synthesis: null,
           slideOutline,
           avgScore: avg,
         });
@@ -433,13 +434,7 @@ export function AnalyzeWorkspace() {
         </p>
       ) : null}
 
-      {synthesisMarkdown ? (
-        <ConflictMap synthesis={synthesisMarkdown} />
-      ) : null}
-
-      {synthesisPayload ? (
-        <RedFlagsSummary flags={synthesisPayload.redFlags} visible />
-      ) : null}
+      {synthesis ? <ConflictMap synthesis={synthesis} /> : null}
     </div>
   );
 }

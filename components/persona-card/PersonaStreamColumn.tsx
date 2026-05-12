@@ -47,21 +47,21 @@ export function PersonaStreamColumn({
       {error ? (
         <p className="text-sm text-persona-scale">{error}</p>
       ) : (
-        <div className="prose prose-stone prose-sm max-w-none text-ink-700 leading-relaxed">
+        <div className="prose prose-invert prose-sm max-w-none rounded-lg bg-ink/[0.85] px-3 py-3 text-cream-100">
           {show ? (
             <>
               <ReactMarkdown>{text}</ReactMarkdown>
               {showCursor ? (
                 <span
-                  className="inline-block w-1.5 h-4 bg-ink-600 opacity-70 animate-pulse ml-0.5 align-middle"
+                  className="inline-block w-1.5 h-4 bg-current opacity-70 animate-pulse ml-0.5 align-middle"
                   aria-hidden
                 />
               ) : null}
             </>
           ) : (
-            <p className="text-[13px] m-0 text-ink-500">
+            <p className="text-[13px] m-0 opacity-80">
               {status === "streaming" ? (
-                <span className="inline-block w-1.5 h-4 bg-ink-500 opacity-70 animate-pulse align-middle" />
+                <span className="inline-block w-1.5 h-4 bg-cream-200 opacity-70 animate-pulse align-middle" />
               ) : (
                 "—"
               )}
