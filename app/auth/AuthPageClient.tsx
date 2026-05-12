@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type Props = {
   googleEnabled: boolean;
@@ -42,18 +43,23 @@ export function AuthPageClient({
     setIsLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/auth/magic-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      const supabase = createSupabaseBrowserClient();
+      const redirectTo = `${window.location.origin}/auth/callback`;
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: email.trim().toLowerCase(),
+        options: {
+          emailRedirectTo: redirectTo,
+          shouldCreateUser: true,
+        },
       });
-      const data = (await res.json().catch(() => null)) as {
-        ok?: boolean;
-        message?: string;
-      } | null;
 
-      if (!res.ok || !data?.ok) {
-        setError(data?.message ?? "Could not send the link. Try again.");
+      if (otpError) {
+        console.error("[signInWithOtp]", otpError.message);
+        setError(
+          otpError.message.includes("redirect")
+            ? "Supabase rejected this redirect URL. Add your site URL and /auth/callback under Authentication → URL Configuration."
+            : "Could not send the link. Try again in a moment."
+        );
         setIsLoading(false);
         return;
       }

@@ -89,9 +89,18 @@ node scripts/validate.js
    - Optional: `PDF_UPLOAD_MAX_BYTES` — lower than the default ~10MB cap when your host limits request size (Vercel ~4.5MB); see `.env.example`
 4. Deploy. Long-running **`/api/analyze`** relies on exported `maxDuration` in route handlers; use a Vercel plan that supports the duration you need.
 
+### Vercel troubleshooting (when the site loads but auth breaks)
+
+Production was returning **`{"message":"There is a problem with the server configuration..."}`** from **`/api/auth/providers`** when **`NEXTAUTH_SECRET`** was missing in Vercel. NextAuth needs this on every deploy:
+
+1. **`NEXTAUTH_SECRET`** — generate locally with `openssl rand -base64 32` (or any long random string), add under Vercel → Project → Settings → Environment Variables for **Production** (and Preview if you use it), then **Redeploy**.
+2. **`NEXTAUTH_URL`** — must match the deployment URL exactly, e.g. `https://contrario-app.vercel.app` (no trailing slash). Wrong origin breaks OAuth callbacks and cookies.
+3. **Email magic link** — if `/auth` shows a warning about Supabase keys, set **`NEXT_PUBLIC_SUPABASE_URL`** and **`NEXT_PUBLIC_SUPABASE_ANON_KEY`** on Vercel, plus **`SUPABASE_SERVICE_ROLE_KEY`** (required for verifying the magic-link token server-side). In Supabase → Authentication → URL Configuration, add **`https://<your-domain>/auth/callback`** (and **`http://localhost:3000/auth/callback`** for local dev) to **Redirect URLs**. **Important:** Request the link and open it **on the same browser/device** — PKCE stores a verifier when you submit your email.
+4. After changing env vars, trigger a **new deployment** so the runtime picks them up.
+
 ### Live deploy (CLI-linked project)
 
-If you use `npx vercel link`, production may be served at **`https://contrario-app.vercel.app`** (check your Vercel dashboard). Set **`NEXTAUTH_URL`** to that exact HTTPS URL in Vercel → Settings → Environment Variables, and add the same origin + `/api/auth/callback/google` under **Google Cloud → OAuth redirect URIs**.
+If you use `npx vercel link`, production may be served at **`https://contrario-app.vercel.app`** (check your Vercel dashboard). Set **`NEXTAUTH_URL`** to that exact HTTPS URL in Vercel → Settings → Environment Variables. For Google OAuth only, add **`https://<your-domain>/api/auth/callback/google`** under **Google Cloud → OAuth redirect URIs**. Email magic links use Supabase redirect **`https://<your-domain>/auth/callback`** (see above).
 
 ### Supabase database security (not a bug)
 
