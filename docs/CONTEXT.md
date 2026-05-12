@@ -59,7 +59,7 @@ The conflict map IS the product. That's the insight no competitor has.
 ## TECH STACK (DECIDED)
 - **Framework:** Next.js 14, App Router
 - **Styling:** Tailwind CSS + custom dark theme
-- **AI:** Pluggable backend — **Gemini** (`@google/generative-ai`, default for free-tier dev) or **Anthropic Claude** (`AI_PROVIDER=anthropic`, `claude-sonnet-4-20250514` default). Switch in `lib/ai-provider.ts` + `.env.local`.
+- **AI:** **Gemini** (`GEMINI_API_KEY`, `@google/generative-ai`) is the required backend for the current phase; `scripts/validate.js` enforces it. Anthropic (`AI_PROVIDER=anthropic`, `ANTHROPIC_API_KEY`) remains wired for multi-LLM work. Switch in `lib/ai-provider.ts` + `.env.local`.
 - **PDF Parse:** `pdf-parse` (Node.js, server action)
 - **Auth:** NextAuth.js (Google OAuth + Email magic link)
 - **DB:** Supabase (Postgres)
@@ -176,13 +176,17 @@ NEXT_PUBLIC_SUPABASE_DECK_BUCKET=deck-uploads
 - **Done:** M05 (text paste — `components/upload/TextInput.tsx`, tab toggle with PDF on `/analyze`, helper `title` + visible checklist). M06 (`POST /api/analyze` SSE, `lib/personas.ts` + `lib/persona-stream.ts` parallel Gemini/Anthropic streaming, `AnalyzeWorkspace` + `PersonaStreamColumn`, guest one-run via `localStorage`). M01 validator fixed for `Zero&nbsp;consensus`; hero adds `Sign up` link to `/auth`. Single env template remains `.env.example` only — `.env.local` gitignored.
 - **Decisions:** Serialized SSE writes for thread-safe multiplexing; Anthropic uses MessageStream `text` events; API input min 40 chars (paste tab still 100+ for UX).
 - **Next session should start with:** M07 conflict map zones + M08 consensus red flags on top of streaming output.
-- **Blockers:** `node scripts/validate.js --module=M06` requires `GEMINI_API_KEY` (default AI) or `AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY` in `.env.local`.
+- **Blockers:** `node scripts/validate.js --module=M06` requires **`GEMINI_API_KEY`** in `.env.local` for the current phase. Set `AI_PROVIDER=anthropic` and **`ANTHROPIC_API_KEY`** only when you run Claude.
 
 ### Session 007 — May 12, 2026
-- **Done:** M07 + M08 — `synthesizeConflictAndFlags()` runs after `Promise.all` persona streams; SSE events `synthesis` / `synthesisError`; `AnalyzeWorkspace` renders `ConflictMap` + `RedFlagsSummary`; score badges from `extractScoreFromMarkdown`; `scripts/validate.js` M06–M08 + `--pre-deploy` use OR-key LLM check; `docs/ROADMAP.md` updated.
+- **Done:** M07 + M08 — `synthesizeConflictAndFlags()` runs after `Promise.all` persona streams; SSE events `synthesis` / `synthesisError`; `AnalyzeWorkspace` renders `ConflictMap` + `RedFlagsSummary`; score badges from `extractScoreFromMarkdown`; `docs/ROADMAP.md` updated.
 - **Decisions:** Second-pass synthesis uses the same active LLM as M06 (Gemini JSON mode vs Claude); conflict map bullets capped in normalizer.
 - **Next session should start with:** M09 per-slide breakdown or M10 dashboard history (per ROADMAP).
-- **Blockers:** None for local dev beyond having the key that matches `AI_PROVIDER`.
+- **Blockers:** Add **`GEMINI_API_KEY`** to `.env.local` for the current Gemini-first stack. Use **`ANTHROPIC_API_KEY`** only with **`AI_PROVIDER=anthropic`**.
+
+### Session 008 — May 12, 2026
+- **Done:** Validators and docs treat **Gemini as the required LLM for the current phase** (`GEMINI_API_KEY` enforced in `scripts/validate.js` M06 + `--pre-deploy`). Anthropic remains optional unless `AI_PROVIDER=anthropic`. Updated `lib/ai-provider.ts` comment, `.env.example`, `README.md`, `docs/CONTEXT.md`.
+- **Next:** Add your Gemini key to `.env.local` — `node scripts/validate.js --module=M06` should hit 100%.
 
 ---
 

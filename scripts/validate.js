@@ -292,36 +292,23 @@ const validators = {
     );
 
     const backend = activeAiBackend();
-    const hasGemini = envExists("GEMINI_API_KEY");
-    const hasAnthropic = envExists("ANTHROPIC_API_KEY");
     check(
-      hasGemini || hasAnthropic,
-      "At least one LLM key is set (GEMINI_API_KEY and/or ANTHROPIC_API_KEY)",
-      "No LLM API key found — add GEMINI_API_KEY or ANTHROPIC_API_KEY to .env.local"
+      envExists("GEMINI_API_KEY"),
+      "GEMINI_API_KEY is set (primary LLM for this phase)",
+      "GEMINI_API_KEY MISSING — add from https://aistudio.google.com/apikey"
     );
-    if (backend === "gemini" && !hasGemini && hasAnthropic) {
-      warn(
-        "AI_PROVIDER is gemini (default) but only ANTHROPIC_API_KEY is set — set GEMINI_API_KEY or AI_PROVIDER=anthropic"
-      );
-    }
-    if (backend === "anthropic" && !hasAnthropic && hasGemini) {
-      warn(
-        "AI_PROVIDER=anthropic but only GEMINI_API_KEY is set — set ANTHROPIC_API_KEY or use default Gemini"
-      );
-    }
-    if (backend === "gemini") {
+    if (backend === "anthropic") {
       check(
-        fileContains("package.json", "@google/generative-ai"),
-        "@google/generative-ai in package.json",
-        "@google/generative-ai NOT installed — run: npm install @google/generative-ai"
-      );
-    } else {
-      check(
-        fileContains("package.json", "@anthropic-ai/sdk"),
-        "@anthropic-ai/sdk in package.json",
-        "@anthropic-ai/sdk NOT in package.json — run: npm install @anthropic-ai/sdk"
+        envExists("ANTHROPIC_API_KEY"),
+        "ANTHROPIC_API_KEY is set (AI_PROVIDER=anthropic)",
+        "ANTHROPIC_API_KEY MISSING — required when using Claude, or set AI_PROVIDER=gemini"
       );
     }
+    check(
+      fileContains("package.json", "@google/generative-ai"),
+      "@google/generative-ai in package.json",
+      "@google/generative-ai NOT installed — run: npm install @google/generative-ai"
+    );
 
     // Check for parallel calls (Promise.all)
     const analyzeRoute =
@@ -492,21 +479,16 @@ async function preDeployChecks() {
   envVars.forEach((v) => check(envExists(v), `${v} is set`, `${v} MISSING`));
 
   header("AI provider (see lib/ai-provider.ts)");
-  const hasGemini = envExists("GEMINI_API_KEY");
-  const hasAnthropic = envExists("ANTHROPIC_API_KEY");
   check(
-    hasGemini || hasAnthropic,
-    "At least one LLM key (GEMINI_API_KEY and/or ANTHROPIC_API_KEY)",
-    "No LLM API key — add GEMINI_API_KEY or ANTHROPIC_API_KEY"
+    envExists("GEMINI_API_KEY"),
+    "GEMINI_API_KEY is set (required for current phase)",
+    "GEMINI_API_KEY MISSING — https://aistudio.google.com/apikey"
   );
-  if (activeAiBackend() === "gemini" && !hasGemini && hasAnthropic) {
-    warn(
-      "AI_PROVIDER is gemini (default) but only ANTHROPIC_API_KEY is set — set GEMINI_API_KEY or AI_PROVIDER=anthropic"
-    );
-  }
-  if (activeAiBackend() === "anthropic" && !hasAnthropic && hasGemini) {
-    warn(
-      "AI_PROVIDER=anthropic but only GEMINI_API_KEY is set — set ANTHROPIC_API_KEY or use default Gemini"
+  if (activeAiBackend() === "anthropic") {
+    check(
+      envExists("ANTHROPIC_API_KEY"),
+      "ANTHROPIC_API_KEY is set",
+      "ANTHROPIC_API_KEY MISSING — required when AI_PROVIDER=anthropic"
     );
   }
 

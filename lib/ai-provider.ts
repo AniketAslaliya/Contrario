@@ -1,6 +1,7 @@
 /**
- * Which LLM powers M06+ analysis. Default `gemini` for free-tier dev;
- * set `AI_PROVIDER=anthropic` (or `claude`) for Claude.
+ * Which LLM powers M06+ analysis.
+ * Current phase: default `gemini` — **GEMINI_API_KEY** is required in `.env.local`
+ * (validators enforce this). Anthropic stays wired for multi-LLM / `AI_PROVIDER=anthropic`.
  * Server-only — do not import from client components.
  */
 

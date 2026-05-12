@@ -5,7 +5,7 @@
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
 ![Status](https://img.shields.io/badge/status-active--development-brightgreen)
-![Stack](https://img.shields.io/badge/stack-Next.js%2014%20%7C%20Claude%20API%20%7C%20Supabase-blueviolet)
+![Stack](https://img.shields.io/badge/stack-Next.js%2014%20%7C%20Gemini%20%7C%20Supabase-blueviolet)
 
 ---
 
@@ -44,7 +44,7 @@ Contrario fires **three investor archetypes simultaneously** against your pitch 
 | Layer | Technology |
 |---|---|
 | Framework | Next.js 14 (App Router) |
-| AI Engine | Gemini (default) or Anthropic Claude — `AI_PROVIDER` in `.env.local` |
+| AI Engine | **Gemini** (`GEMINI_API_KEY` required for current phase); Anthropic optional via `AI_PROVIDER=anthropic` |
 | Styling | Tailwind CSS |
 | Auth | NextAuth.js |
 | Database | Supabase |
@@ -82,7 +82,7 @@ node scripts/validate.js
 contrario/
 ├── app/              # Next.js App Router pages
 ├── components/       # Reusable UI components
-├── lib/              # Core logic (Claude API, personas, PDF parser)
+├── lib/              # Core logic (Gemini/Anthropic, personas, PDF parser)
 ├── docs/             # PRD, ROADMAP, CONTEXT (read these first)
 └── scripts/          # Validation and utility scripts
 ```
@@ -110,7 +110,8 @@ See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the full breakdown. Current priorit
 - [x] M04: PDF upload + server-side text extraction
 - [x] M05: Text paste + analyze tabs
 - [x] M06: Streaming analysis API
-- [ ] M07: Conflict map UI
+- [x] M07: Conflict map UI
+- [x] M08: Consensus red flags
 
 ---
 
