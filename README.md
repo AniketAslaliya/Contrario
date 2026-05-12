@@ -90,9 +90,28 @@ node scripts/validate.js
 
 ### Supabase (cloud migrations)
 
-Applied migrations live under `supabase/migrations/` and must exist on **your hosted** Supabase Postgres before the app CRUD/org features work. This repo cannot apply DDL with only the anon key or service role JWT.
+Migrations live under `supabase/migrations/` and must be applied once to **your hosted** Supabase Postgres. **Do not paste your DB password into chat.**
 
-**Recommended (fully in the cloud):** Supabase Dashboard → **SQL Editor**, run each file **in chronological filename order**:
+**Easiest from your laptop (recommended):**
+
+1. In Supabase → **Project Settings → Database**, copy the **URI** connection string (replace `[YOUR-PASSWORD]` with your DB password — often the one you chose at project creation, not the anon key).
+2. Add one line to **`.env.local`** (already gitignored):
+
+   ```bash
+   DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@db.YOUR_PROJECT_REF.supabase.co:5432/postgres
+   ```
+
+   If Supabase warns about IPv4, use the **Session pooler** URI from the same Connect screen instead.
+
+3. From the repo root:
+
+   ```bash
+   npm run db:migrate
+   ```
+
+That runs each `*.sql` file in **`supabase/migrations/`** in sorted (chronological) order. Partial reruns may error if objects already exist; the SQL uses `IF NOT EXISTS` where possible.
+
+**Alternative (browser only):** Supabase Dashboard → **SQL Editor**, paste each file in order:
 
 1. `20260512120000_profiles.sql`
 2. `20260513200000_analyses.sql`
@@ -100,9 +119,7 @@ Applied migrations live under `supabase/migrations/` and must exist on **your ho
 4. `20260515000000_m14_m25_platform.sql`
 5. `20260515100000_analyses_starred.sql`
 
-`IF NOT EXISTS` / defensive `ALTER` clauses make re-runs relatively safe where used.
-
-**Optional (CLI to remote DB):** install [Supabase CLI](https://supabase.com/docs/guides/cli), set a Postgres URI from Dashboard → Connect (Session pooler is fine), then push migrations per Supabase CLI docs (`db push` / linked project)—requires your database password or access token on your machine, not shipped in Git.
+**Optional:** [Supabase CLI](https://supabase.com/docs/guides/cli) with a linked project or `--db-url` (same credential rules — keep it local).
 
 ---
 

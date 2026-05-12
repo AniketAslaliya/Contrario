@@ -9,7 +9,8 @@
     "lint": "next lint",
     "validate": "node scripts/validate.js",
     "validate:module": "node scripts/validate.js --module",
-    "validate:deploy": "node scripts/validate.js --pre-deploy"
+    "validate:deploy": "node scripts/validate.js --pre-deploy",
+    "db:migrate": "node scripts/migrate-remote.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
@@ -19,6 +20,7 @@
     "lucide-react": "^0.460.0",
     "next": "14.2.35",
     "next-auth": "^4.24.7",
+    "pg": "^8.13.1",
     "pdf-parse": "^1.1.1",
     "pdfkit": "^0.18.0",
     "react": "^18",
