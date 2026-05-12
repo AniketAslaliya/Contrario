@@ -310,20 +310,26 @@ const validators = {
       "@google/generative-ai NOT installed — run: npm install @google/generative-ai"
     );
 
-    // Check for parallel calls (Promise.all)
+    // Parallel streams + synthesis live in lib/analyze-sse.ts (shared with /api/v1/analyze)
+    const sseImpl =
+      fs.existsSync(path.join(ROOT, "lib/analyze-sse.ts"))
+        ? fs.readFileSync(path.join(ROOT, "lib/analyze-sse.ts"), "utf8")
+        : "";
     const analyzeRoute =
       fs.existsSync(path.join(ROOT, "app/api/analyze/route.ts"))
         ? fs.readFileSync(path.join(ROOT, "app/api/analyze/route.ts"), "utf8")
         : fs.existsSync(path.join(ROOT, "app/api/analyze/route.js"))
-        ? fs.readFileSync(path.join(ROOT, "app/api/analyze/route.js"), "utf8")
-        : "";
+          ? fs.readFileSync(path.join(ROOT, "app/api/analyze/route.js"), "utf8")
+          : "";
     check(
-      analyzeRoute.includes("Promise.all") || analyzeRoute.includes("Promise.allSettled"),
+      sseImpl.includes("Promise.all") || sseImpl.includes("Promise.allSettled"),
       "Parallel API calls using Promise.all ✓",
       "NOT using Promise.all — personas are sequential! Fix this immediately."
     );
     check(
-      analyzeRoute.includes("stream") || analyzeRoute.includes("Stream"),
+      analyzeRoute.includes("stream") ||
+        analyzeRoute.includes("Stream") ||
+        sseImpl.includes("ReadableStream"),
       "Streaming response detected",
       "Streaming NOT implemented — add SSE/ReadableStream"
     );
@@ -352,9 +358,10 @@ const validators = {
       "lib/synthesis/post-analysis.ts MISSING — M07/M08 synthesis"
     );
     check(
-      fileContains("app/api/analyze/route.ts", "synthesizeConflictAndFlags"),
-      "Analyze route calls synthesizeConflictAndFlags after streams",
-      "M07: wire synthesizeConflictAndFlags in app/api/analyze/route.ts"
+      sseImpl.includes("synthesizeConflictAndFlags") ||
+        fileContains("app/api/analyze/route.ts", "buildAnalyzeSseStream"),
+      "SSE pipeline synthesizes conflict map after persona streams",
+      "M06: wire synthesizeConflictAndFlags in lib/analyze-sse.ts"
     );
     warn("Manually test: all 3 streams fire simultaneously (check Network tab), first token < 3s");
   },
@@ -413,10 +420,11 @@ const validators = {
       "M09: add SLIDE MAP block in buildUserPromptForPitch"
     );
     check(
-      fileContains("app/api/analyze/route.ts", "slides") &&
-        fileContains("app/api/analyze/route.ts", "parseSlidesPayload"),
-      "Analyze API parses optional slides for streaming",
-      "M09: wire slides in app/api/analyze/route.ts"
+      fileContains("lib/analyze-sse.ts", "parseSlidesPayload") &&
+        (fileContains("app/api/analyze/route.ts", "parseSlidesPayload") ||
+          fileContains("app/api/analyze/route.ts", "buildAnalyzeSseStream")),
+      "Analyze API uses shared SSE helper with slide parsing",
+      "M09: wire parseSlidesPayload in lib/analyze-sse.ts + analyze route"
     );
     check(
       fileContains("app/analyze/AnalyzeWorkspace.tsx", "detectSlidesFromPitch"),
@@ -516,6 +524,169 @@ const validators = {
       "components/dashboard/ShareReportTools.tsx MISSING"
     );
     warn("Manually test: link works without login, shows full analysis, expiry works");
+  },
+
+  M13: () => {
+    header("M13 · PDF Export of Full Report");
+    check(
+      fileExists("lib/report-pdf.ts"),
+      "lib/report-pdf.ts exists",
+      "lib/report-pdf.ts MISSING"
+    );
+    check(
+      fileExists("app/api/analyses/[id]/pdf/route.ts"),
+      "PDF download route exists",
+      "app/api/analyses/[id]/pdf/route.ts MISSING"
+    );
+    check(
+      fileContains("components/dashboard/AnalysisReplay.tsx", "/pdf"),
+      "Analysis replay links to PDF export",
+      "M13: add Download PDF on analysis replay"
+    );
+    warn("Manually test: PDF opens with three personas + synthesis sections");
+  },
+
+  M14: () => {
+    header("M14 · Accelerator Org Account");
+    check(fileExists("lib/org-store.ts"), "org-store exists", "lib/org-store.ts MISSING");
+    check(
+      fileExists("app/dashboard/org/page.tsx"),
+      "Org dashboard route",
+      "app/dashboard/org/page.tsx MISSING"
+    );
+    check(
+      fileExists("supabase/migrations/20260515000000_m14_m25_platform.sql"),
+      "Organizations migration present",
+      "Add organizations + org_members migration"
+    );
+    warn("Manually test: create org, invite code, member sees org-tagged analyses");
+  },
+
+  M15: () => {
+    header("M15 · Bulk Deck Upload");
+    check(
+      fileExists("app/dashboard/batch/page.tsx"),
+      "Batch upload page",
+      "app/dashboard/batch/page.tsx MISSING"
+    );
+    warn("Manually test: multi-PDF queue extracts text sequentially");
+  },
+
+  M16: () => {
+    header("M16 · Ranked Shortlist");
+    check(
+      fileExists("app/dashboard/shortlist/page.tsx"),
+      "Shortlist route",
+      "app/dashboard/shortlist/page.tsx MISSING"
+    );
+    check(
+      fileContains("app/dashboard/shortlist/ShortlistTable.tsx", "Export CSV") ||
+        fileContains("app/dashboard/shortlist/ShortlistTable.tsx", "csv"),
+      "CSV export on shortlist",
+      "M16: export shortlist to CSV"
+    );
+    warn("Manually test: org analyses ranked; star toggles persist");
+  },
+
+  M17: () => {
+    header("M17 · Persona Weight Configuration");
+    check(
+      fileContains("app/dashboard/org/OrgWorkspace.tsx", "saveOrgWeightsAction") ||
+        fileContains("app/dashboard/org/OrgWorkspace.tsx", "Persona weights"),
+      "Org workspace saves persona weights",
+      "M17: weight sliders + save"
+    );
+    warn("Manually test: weights persist and match org profile JSON");
+  },
+
+  M18: () => {
+    header("M18 · Angel Quick Triage");
+    check(
+      fileExists("app/dashboard/analysis/[id]/triage/page.tsx"),
+      "Triage route exists",
+      "app/dashboard/analysis/[id]/triage/page.tsx MISSING"
+    );
+    check(
+      fileContains("components/dashboard/AnalysisReplay.tsx", "triageMode"),
+      "AnalysisReplay supports triage mode",
+      "M18: triageMode layout"
+    );
+    warn("Manually test: triage shows signal + top bullets; share ?triage=1 works");
+  },
+
+  M19: () => {
+    header("M19 · Investment Memo Draft");
+    check(
+      fileExists("app/api/analyses/[id]/memo/route.ts"),
+      "Memo API route",
+      "app/api/analyses/[id]/memo/route.ts MISSING"
+    );
+    check(
+      fileContains("components/dashboard/MemoGeneratorButton.tsx", "memo"),
+      "Memo generator UI",
+      "components/dashboard/MemoGeneratorButton.tsx MISSING"
+    );
+    warn("Manually test: angel generates Markdown memo");
+  },
+
+  M21: () => {
+    header("M21 · Mentor Feedback Layer");
+    check(
+      fileExists("lib/mentor-notes-store.ts"),
+      "mentor-notes-store",
+      "lib/mentor-notes-store.ts MISSING"
+    );
+    check(
+      fileExists("components/dashboard/MentorNotesSection.tsx"),
+      "Mentor notes section",
+      "components/dashboard/MentorNotesSection.tsx MISSING"
+    );
+    warn("Manually test: mentor posts note; founder receives notification");
+  },
+
+  M22: () => {
+    header("M22 · Notification System");
+    check(
+      fileExists("lib/notifications-store.ts"),
+      "notifications-store",
+      "lib/notifications-store.ts MISSING"
+    );
+    check(
+      fileExists("app/notifications/page.tsx"),
+      "Notifications page",
+      "app/notifications/page.tsx MISSING"
+    );
+    warn("Manually test: in-app notifications list; email out of scope");
+  },
+
+  M23: () => {
+    header("M23 · Admin Analytics Dashboard");
+    check(
+      fileExists("app/admin/stats/page.tsx"),
+      "Admin stats page",
+      "app/admin/stats/page.tsx MISSING"
+    );
+    check(
+      fileExists("lib/admin-guard.ts"),
+      "Admin guard helper",
+      "lib/admin-guard.ts MISSING"
+    );
+    warn("Manually test: set CONTRARIO_ADMIN_EMAILS and view /admin/stats");
+  },
+
+  M25: () => {
+    header("M25 · API Access");
+    check(
+      fileExists("app/api/v1/analyze/route.ts"),
+      "POST /api/v1/analyze",
+      "app/api/v1/analyze/route.ts MISSING"
+    );
+    check(
+      fileExists("app/docs/api/page.tsx"),
+      "Public API docs page",
+      "app/docs/api/page.tsx MISSING"
+    );
+    warn("Manually test: CONTRARIO_API_KEY + SSE stream; rate limit via gateway");
   },
 
   M20: () => {

@@ -8,7 +8,11 @@ import {
 } from "@/lib/personas";
 import type { PitchSlide } from "@/lib/slide-split";
 
-export type PersonaStreamOptions = { slides?: PitchSlide[] | null };
+export type PersonaStreamOptions = {
+  slides?: PitchSlide[] | null;
+  /** M20 India context mode */
+  indiaContext?: boolean;
+};
 
 async function* streamGeminiPersona(
   id: PersonaId,
@@ -16,7 +20,8 @@ async function* streamGeminiPersona(
   opts?: PersonaStreamOptions
 ): AsyncGenerator<string> {
   const withSlides = Boolean(opts?.slides && opts.slides.length >= 2);
-  const sys = getPersonaSystemPromptWithSlides(id, withSlides);
+  const india = Boolean(opts?.indiaContext);
+  const sys = getPersonaSystemPromptWithSlides(id, withSlides, india);
   const model = getGeminiGenerativeModel(undefined, sys);
   const prompt = buildUserPromptForPitch(pitch, {
     slides: withSlides ? opts!.slides : undefined,
@@ -38,11 +43,12 @@ async function* streamAnthropicPersona(
   opts?: PersonaStreamOptions
 ): AsyncGenerator<string> {
   const withSlides = Boolean(opts?.slides && opts.slides.length >= 2);
+  const india = Boolean(opts?.indiaContext);
   const client = getAnthropicClient();
   const stream = client.messages.stream({
     model: DEFAULT_ANTHROPIC_MODEL,
     max_tokens: 8192,
-    system: getPersonaSystemPromptWithSlides(id, withSlides),
+    system: getPersonaSystemPromptWithSlides(id, withSlides, india),
     messages: [
       {
         role: "user",

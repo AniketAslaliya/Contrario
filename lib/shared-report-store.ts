@@ -35,6 +35,8 @@ function mapAnalysisRow(raw: Record<string, unknown>): AnalysisRow {
     slide_outline: (raw.slide_outline ?? null) as PitchSlide[] | null,
     avg_score: typeof raw.avg_score === "number" ? raw.avg_score : null,
     created_at: String(raw.created_at ?? ""),
+    org_id: typeof raw.org_id === "string" ? raw.org_id : null,
+    starred: raw.starred === true,
   };
 }
 

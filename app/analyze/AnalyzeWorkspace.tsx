@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ANALYSIS_INPUT_MIN_CHARS,
   GUEST_ANALYSIS_KEY,
   PASTE_MIN_CHARS,
+  STORAGE_INDIA_MODE,
   STORAGE_PENDING_META,
   STORAGE_PENDING_TEXT,
 } from "@/lib/analyze-input";
@@ -82,6 +83,16 @@ export function AnalyzeWorkspace() {
   const [synthesis, setSynthesis] = useState<SynthesisPayload | null>(null);
   const [synthesisError, setSynthesisError] = useState<string | null>(null);
   const [slideHint, setSlideHint] = useState<number | null>(null);
+  const [indiaMode, setIndiaMode] = useState(false);
+
+  useEffect(() => {
+    try {
+      const v = sessionStorage.getItem(STORAGE_INDIA_MODE);
+      setIndiaMode(v === "1");
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const scores = useMemo(() => {
     const s: Record<PersonaId, string | null> = {
@@ -165,6 +176,7 @@ export function AnalyzeWorkspace() {
         body: JSON.stringify({
           text,
           slides: slideOutline ?? undefined,
+          indiaContext: indiaMode,
         }),
       });
 
@@ -264,7 +276,7 @@ export function AnalyzeWorkspace() {
     } finally {
       setRunning(false);
     }
-  }, [guestBlocked, readPitchText, status, tab]);
+  }, [guestBlocked, indiaMode, readPitchText, status, tab]);
 
   return (
     <div className="w-full max-w-6xl mx-auto px-0">
@@ -298,6 +310,27 @@ export function AnalyzeWorkspace() {
       ) : (
         <TextInput onPitchReady={bumpInput} />
       )}
+
+      <label className="flex items-center justify-center gap-3 mt-8 cursor-pointer select-none">
+        <input
+          type="checkbox"
+          checked={indiaMode}
+          onChange={(e) => {
+            const on = e.target.checked;
+            setIndiaMode(on);
+            try {
+              sessionStorage.setItem(STORAGE_INDIA_MODE, on ? "1" : "0");
+            } catch {
+              /* ignore */
+            }
+          }}
+          className="rounded border-cream-400 text-ink focus:ring-ink/20"
+        />
+        <span className="text-sm text-ink-600">
+          India context mode (M20) — INR, UPI, India TAM & tier-2/3 benchmarks
+          when relevant
+        </span>
+      </label>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-10 mb-6 flex-wrap">
         <button

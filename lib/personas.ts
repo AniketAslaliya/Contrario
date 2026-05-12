@@ -80,13 +80,24 @@ Use at most 8 subheadings, each exactly:
 with 1–2 sentences of investor-specific feedback for that slide. Skip slides with nothing actionable.
 `.trim();
 
+/** M20 · India context — appended to every persona system prompt when toggle is ON. */
+export const INDIA_CONTEXT_APPEND = `
+INDIA CONTEXT MODE is active. Where the pitch involves India or emerging markets in Asia, ground examples in Indian market reality:
+- Use INR for unit economics and pricing when relevant; cite India TAM/SAM responsibly.
+- Reference distribution via WhatsApp, UPI, Jio-class mobile penetration, and tier-2/3 dynamics when applicable.
+- Compare to credible India comparables (startups or incumbents) instead of only US benchmarks.
+If the pitch is explicitly global/non-India, still apply rigorous numbers without forcing India-only framing.
+`.trim();
+
 export function getPersonaSystemPromptWithSlides(
   id: PersonaId,
-  withSlides: boolean
+  withSlides: boolean,
+  indiaContext = false
 ): string {
-  const base = getPersonaSystemPrompt(id);
-  if (!withSlides) return base;
-  return `${base}\n\n${SLIDE_SECTION_APPEND}`;
+  let out = getPersonaSystemPrompt(id);
+  if (withSlides) out += `\n\n${SLIDE_SECTION_APPEND}`;
+  if (indiaContext) out += `\n\n${INDIA_CONTEXT_APPEND}`;
+  return out;
 }
 
 export function buildUserPromptForPitch(

@@ -5,11 +5,17 @@ import { AnalysisReplay } from "@/components/dashboard/AnalysisReplay";
 
 export default async function PublicReportPage({
   params,
+  searchParams,
 }: {
   params: { slug: string };
+  searchParams: { triage?: string };
 }) {
   const analysis = await getSharedAnalysisBySlug(params.slug);
   if (!analysis) notFound();
+
+  const triage =
+    searchParams.triage === "1" ||
+    searchParams.triage === "true";
 
   return (
     <main className="relative min-h-screen flex flex-col items-center px-6 py-16 md:py-20">
@@ -17,7 +23,21 @@ export default async function PublicReportPage({
         Shared Contrario report · anyone with this link can read it (until it
         expires, if an expiry was set).
       </p>
-      <AnalysisReplay analysis={analysis} publicView />
+      <AnalysisReplay
+        analysis={analysis}
+        publicView
+        triageMode={triage}
+      />
+      {!triage ? (
+        <div className="mt-6 text-center text-sm">
+          <Link
+            href={`?triage=1`}
+            className="text-ink-400 hover:text-ink underline"
+          >
+            Quick triage view
+          </Link>
+        </div>
+      ) : null}
       <div className="mt-12 text-center space-y-3">
         <Link href="/" className="text-sm text-ink-400 hover:text-ink block">
           Contrario home

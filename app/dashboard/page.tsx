@@ -51,6 +51,9 @@ export default async function DashboardPage() {
                 Compare two runs
               </Link>
             ) : null}
+            <Link href="/notifications" className="btn-secondary text-center">
+              Notifications
+            </Link>
             <Link href="/settings" className="btn-secondary text-center">
               Account
             </Link>
@@ -118,22 +121,28 @@ export default async function DashboardPage() {
           Org <span className="italic text-muted-word">Home</span>
         </h1>
         <p className="text-ink-400 text-base leading-relaxed mb-6">
-          Cohort analytics, batch uploads, ranked shortlists, and mentor overlays
-          will land here soon. Founder and angel flows route through analysis.
+          Cohort tools: invite members, run batch uploads, and rank analyses for
+          your program.
         </p>
         <p className="text-sm text-ink-500 mb-10">
           Viewing dashboard as{" "}
           <span className="text-ink font-medium capitalize">{role}</span>.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/analyze" className="btn-primary text-center">
-            Go to Analyze
+        <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center">
+          <Link href="/dashboard/org" className="btn-primary text-center">
+            Organization
+          </Link>
+          <Link href="/dashboard/shortlist" className="btn-secondary text-center">
+            Shortlist
+          </Link>
+          <Link href="/dashboard/batch" className="btn-secondary text-center">
+            Batch upload
+          </Link>
+          <Link href="/analyze" className="btn-secondary text-center">
+            Analyze
           </Link>
           <Link href="/settings" className="btn-secondary text-center">
-            Role &amp; account
-          </Link>
-          <Link href="/" className="btn-secondary text-center">
-            Home
+            Account
           </Link>
         </div>
       </div>

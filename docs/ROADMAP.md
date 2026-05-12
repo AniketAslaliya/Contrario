@@ -234,7 +234,7 @@ User Input → /api/analyze (POST)
 ---
 
 ### M13 · PDF Export of Full Report
-**Status:** 🔲 Not started  
+**Status:** ✅ MVP shipped  
 **Priority:** 🟡 P1  
 **Hours:** 2  
 **Description:** Download the analysis as a branded PDF report  
@@ -250,7 +250,7 @@ User Input → /api/analyze (POST)
 ## Phase 4 — Multi-User Roles (Days 4–5)
 
 ### M14 · Accelerator Org Account
-**Status:** 🔲 Not started  
+**Status:** ✅ MVP shipped  
 **Priority:** 🟢 P2  
 **Hours:** 3  
 **Description:** Organization-level account for accelerators to manage multiple founders/decks  
@@ -263,7 +263,7 @@ User Input → /api/analyze (POST)
 ---
 
 ### M15 · Bulk Deck Upload
-**Status:** 🔲 Not started  
+**Status:** ✅ MVP shipped  
 **Priority:** 🟢 P2  
 **Hours:** 2.5  
 **Description:** Accelerators upload up to 20 decks at once for batch analysis  
@@ -276,7 +276,7 @@ User Input → /api/analyze (POST)
 ---
 
 ### M16 · Ranked Shortlist Dashboard
-**Status:** 🔲 Not started  
+**Status:** ✅ MVP shipped  
 **Priority:** 🟢 P2  
 **Hours:** 2  
 **Description:** After batch analysis, accelerator sees ranked list of decks by composite score  
@@ -289,7 +289,7 @@ User Input → /api/analyze (POST)
 ---
 
 ### M17 · Custom Persona Weight Configuration
-**Status:** 🔲 Not started  
+**Status:** ✅ MVP shipped  
 **Priority:** 🟢 P2  
 **Hours:** 2  
 **Description:** Accelerators can adjust how much weight each persona gets in composite score  
@@ -302,7 +302,7 @@ User Input → /api/analyze (POST)
 ---
 
 ### M18 · Angel Quick Triage Mode
-**Status:** 🔲 Not started  
+**Status:** ✅ MVP shipped  
 **Priority:** 🟢 P2  
 **Hours:** 1.5  
 **Description:** Stripped-down single-page view for angels who want a 60-second read on a deck  
@@ -315,7 +315,7 @@ User Input → /api/analyze (POST)
 ---
 
 ### M19 · Investment Memo Draft Generator
-**Status:** 🔲 Not started  
+**Status:** ✅ MVP shipped  
 **Priority:** 🟢 P2  
 **Hours:** 2  
 **Description:** For angels — generate a structured 1-page investment memo from the analysis  
@@ -328,7 +328,7 @@ User Input → /api/analyze (POST)
 ---
 
 ### M20 · India Context Mode
-**Status:** 🔲 Not started  
+**Status:** ✅ MVP shipped  
 **Priority:** 🟡 P1  
 **Hours:** 2  
 **Description:** Toggle that adds India-specific benchmarks and context to all persona analysis  
@@ -343,7 +343,7 @@ User Input → /api/analyze (POST)
 ## Phase 5 — Platform (Days 5–6)
 
 ### M21 · Mentor Feedback Layer
-**Status:** 🔲 Not started  
+**Status:** ✅ MVP shipped  
 **Priority:** ⚪ P3  
 **Hours:** 4  
 **Description:** Human mentors can add their own annotations on top of AI analysis  
@@ -356,7 +356,7 @@ User Input → /api/analyze (POST)
 ---
 
 ### M22 · Notification System
-**Status:** 🔲 Not started  
+**Status:** ✅ MVP shipped  
 **Priority:** 🟢 P2  
 **Hours:** 2  
 **Description:** Email notifications for key events  
@@ -369,7 +369,7 @@ User Input → /api/analyze (POST)
 ---
 
 ### M23 · Admin Analytics Dashboard
-**Status:** 🔲 Not started  
+**Status:** ✅ MVP shipped  
 **Priority:** 🟢 P2  
 **Hours:** 2  
 **Description:** Internal dashboard for Contrario admin to see usage stats  
@@ -383,7 +383,7 @@ User Input → /api/analyze (POST)
 ---
 
 ### M24 · Waitlist + Referral System
-**Status:** 🔲 Not started  
+**Status:** ✅ MVP shipped  
 **Priority:** 🟡 P1  
 **Hours:** 1.5  
 **Description:** Pre-launch waitlist with referral mechanism to grow organic signups  
@@ -397,7 +397,7 @@ User Input → /api/analyze (POST)
 ---
 
 ### M25 · API Access (Accelerator Integration)
-**Status:** 🔲 Not started  
+**Status:** ✅ MVP shipped  
 **Priority:** ⚪ P3  
 **Hours:** 4  
 **Description:** REST API for accelerators to integrate Contrario into their own application portals  

@@ -66,9 +66,15 @@ export function ShareReportTools({ analysisId }: Props) {
         <p className="text-xs text-ink-500 mt-3">{message}</p>
       ) : null}
       {url ? (
-        <p className="text-xs text-ink-600 mt-2 break-all font-mono bg-cream-200/50 rounded-lg px-2 py-2">
-          {url}
-        </p>
+        <>
+          <p className="text-xs text-ink-600 mt-2 break-all font-mono bg-cream-200/50 rounded-lg px-2 py-2">
+            {url}
+          </p>
+          <p className="text-xs text-ink-500 mt-2">
+            Quick read (triage):{" "}
+            <span className="font-mono break-all">{url}?triage=1</span>
+          </p>
+        </>
       ) : null}
     </div>
   );

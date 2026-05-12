@@ -6,6 +6,7 @@ export type UserProfileRow = {
   user_id: string;
   email: string | null;
   role: UserRole;
+  org_id?: string | null;
   created_at: string;
   updated_at: string;
 };

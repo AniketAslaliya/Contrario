@@ -8,4 +8,6 @@ export const ANALYSIS_INPUT_MIN_CHARS = 40;
 
 export const STORAGE_PENDING_TEXT = "contrario:pendingDeckText";
 export const STORAGE_PENDING_META = "contrario:pendingDeckMeta";
+/** M20 · India context toggle (boolean string "1" / "0") */
+export const STORAGE_INDIA_MODE = "contrario:indiaContextMode";
 export const GUEST_ANALYSIS_KEY = "contrario:guestAnalysesUsed";

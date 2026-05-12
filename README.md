@@ -76,6 +76,36 @@ node scripts/validate.js
 
 ---
 
+## Deploy to Vercel
+
+1. Push this repo to GitHub (see remote in `git remote -v`).
+2. In Vercel: **Import** the repo, framework **Next.js**, build `npm run build`, output `.next`.
+3. Add **Environment variables** for Production / Preview (match `.env.example`):
+   - `NEXTAUTH_SECRET`, `NEXTAUTH_URL` (Production must be `https://<your-domain>`)
+   - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (authorize the Vercel URL in Google Cloud Console)
+   - `GEMINI_API_KEY`, optional `GEMINI_MODEL`, optional `AI_PROVIDER`
+   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+   - Optional: `NEXT_PUBLIC_SUPABASE_DECK_BUCKET`, `CONTRARIO_API_KEY`, `CONTRARIO_ADMIN_EMAILS`
+4. Deploy. Long-running **`/api/analyze`** relies on exported `maxDuration` in route handlers; use a Vercel plan that supports the duration you need.
+
+### Supabase (cloud migrations)
+
+Applied migrations live under `supabase/migrations/` and must exist on **your hosted** Supabase Postgres before the app CRUD/org features work. This repo cannot apply DDL with only the anon key or service role JWT.
+
+**Recommended (fully in the cloud):** Supabase Dashboard → **SQL Editor**, run each file **in chronological filename order**:
+
+1. `20260512120000_profiles.sql`
+2. `20260513200000_analyses.sql`
+3. `20260514000000_shared_reports.sql`
+4. `20260515000000_m14_m25_platform.sql`
+5. `20260515100000_analyses_starred.sql`
+
+`IF NOT EXISTS` / defensive `ALTER` clauses make re-runs relatively safe where used.
+
+**Optional (CLI to remote DB):** install [Supabase CLI](https://supabase.com/docs/guides/cli), set a Postgres URI from Dashboard → Connect (Session pooler is fine), then push migrations per Supabase CLI docs (`db push` / linked project)—requires your database password or access token on your machine, not shipped in Git.
+
+---
+
 ## Project Structure
 
 ```
@@ -116,6 +146,9 @@ See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the full breakdown. Current priorit
 - [x] M10: Dashboard session history
 - [x] M11: Deck improvement tracker
 - [x] M12: Shareable report link
+- [x] M13–M25: PDF export, org/shortlist/batch, persona weights UI, India context, memo & triage, mentor notes & notifications, admin snapshot, waitlist/API docs, SSE `lib/analyze-sse` (`node scripts/validate.js` verifies wiring)
+
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for full acceptance criteria.
 
 ---
 

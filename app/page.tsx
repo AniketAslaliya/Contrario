@@ -126,7 +126,13 @@ export default function LandingPage() {
           >
             Sign up
           </Link>{" "}
-          — cloud saves & deck history
+          — cloud saves & deck history ·{" "}
+          <Link
+            href="/waitlist"
+            className="text-ink-400 hover:text-ink underline-offset-4 hover:underline"
+          >
+            Waitlist
+          </Link>
         </p>
 
         {/* Hero visual — warm gradient card with persona preview */}

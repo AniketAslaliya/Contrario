@@ -52,7 +52,17 @@ export async function saveAnalysisAction(input: {
       synthesis: input.synthesis,
       slideOutline: input.slideOutline,
       avgScore: input.avgScore,
+      orgId: profile?.org_id ?? null,
     });
+    try {
+      const { insertNotification } = await import("@/lib/notifications-store");
+      await insertNotification(
+        userId,
+        "Analysis saved — view it in your history."
+      );
+    } catch {
+      /* optional */
+    }
     return { ok: true, id };
   } catch (e) {
     return {
