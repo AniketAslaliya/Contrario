@@ -59,8 +59,8 @@ export default function LandingPage() {
               ))}
             </div>
           </div>
-          <p className="text-sm text-ink-400 mb-8 text-center">
-            Built for the Activate AI Fellows Program
+          <p className="text-sm text-ink-600 mb-8 text-center font-medium">
+            Multi-lens pitch intelligence for founders
           </p>
         </div>
 
@@ -229,7 +229,7 @@ export default function LandingPage() {
                   <p className="font-serif text-5xl sm:text-6xl text-white mb-3">
                     {stat.value}
                   </p>
-                  <p className="text-white/70 text-sm">{stat.label}</p>
+                  <p className="text-white/85 text-sm">{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -281,7 +281,7 @@ export default function LandingPage() {
                   <br />
                   Chaser
                 </h3>
-                <p className="text-white/60 text-sm leading-relaxed">
+                <p className="text-white/80 text-sm leading-relaxed">
                   Growth VC archetype (Peak XV style). Only cares about billion
                   dollar outcomes and market dominance.
                 </p>
@@ -310,7 +310,7 @@ export default function LandingPage() {
                   <br />
                   Buyer
                 </h3>
-                <p className="text-white/60 text-sm leading-relaxed">
+                <p className="text-white/80 text-sm leading-relaxed">
                   First-check Indian angel. Bets on people, not spreadsheets.
                   Tests your conviction and market understanding.
                 </p>
@@ -339,7 +339,7 @@ export default function LandingPage() {
                   <br />
                   Check
                 </h3>
-                <p className="text-white/60 text-sm leading-relaxed">
+                <p className="text-white/80 text-sm leading-relaxed">
                   Skeptical operator who&apos;s built and failed. Won&apos;t let
                   you hide behind optimism. Demands proof.
                 </p>

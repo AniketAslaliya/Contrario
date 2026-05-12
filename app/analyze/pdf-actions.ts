@@ -7,7 +7,7 @@ import type { ParsePdfResult } from "@/lib/pdf-pipeline";
 
 /**
  * M04 server action — same pipeline as POST /api/parse-pdf.
- * When M06 ships, hand `text` to the analyze API or pass via sessionStorage from the client.
+ * Prefer `extractPdfViaApiRoute` from the browser for uploads (Server Action POST bodies default ~1MB).
  */
 export async function extractPitchPdfAction(
   formData: FormData

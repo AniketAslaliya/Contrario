@@ -5,9 +5,13 @@ import { runPdfPipeline } from "@/lib/pdf-pipeline";
 /** Node runtime — pdf-parse */
 export const runtime = "nodejs";
 
+/** Large decks — align with Vercel plan limits if deployed there. */
+export const maxDuration = 60;
+
 /**
  * POST multipart/form-data with field `file` (single PDF).
- * maxSize 10MB — see lib/pdf-constants.ts (10 * 1024 * 1024).
+ * Client uploads use this route (not Server Actions) so bodies up to `effectivePdfMaxBytes()` reach Node.
+ * Optional env `PDF_UPLOAD_MAX_BYTES` clamps below `MAX_PDF_BYTES` on hosts with smaller limits (~4.5MB on Vercel).
  */
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);

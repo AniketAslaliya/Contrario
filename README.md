@@ -82,10 +82,11 @@ node scripts/validate.js
 2. In Vercel: **Import** the repo, framework **Next.js**, build `npm run build`, output `.next`.
 3. Add **Environment variables** for Production / Preview (match `.env.example`):
    - `NEXTAUTH_SECRET`, `NEXTAUTH_URL` (Production must be `https://<your-domain>`)
-   - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (authorize the Vercel URL in Google Cloud Console)
+   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (email magic link: enable **Email** in Supabase Auth; add redirect `https://<your-domain>/auth/callback`)
+   - Optional: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (only if you want “Sign in with Google”)
    - `GEMINI_API_KEY`, optional `GEMINI_MODEL`, optional `AI_PROVIDER`
-   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
    - Optional: `NEXT_PUBLIC_SUPABASE_DECK_BUCKET`, `CONTRARIO_API_KEY`, `CONTRARIO_ADMIN_EMAILS`
+   - Optional: `PDF_UPLOAD_MAX_BYTES` — lower than the default ~10MB cap when your host limits request size (Vercel ~4.5MB); see `.env.example`
 4. Deploy. Long-running **`/api/analyze`** relies on exported `maxDuration` in route handlers; use a Vercel plan that supports the duration you need.
 
 ### Live deploy (CLI-linked project)
@@ -187,7 +188,3 @@ See [`docs/ROADMAP.md`](docs/ROADMAP.md) for full acceptance criteria.
 **Aniket Aslaliya** — Technical PM & AI Builder  
 Google Cloud Gen AI Hackathon Winner 2025 | 2nd Runner-up Meta Hackathon 2026  
 [aniketaslaliya.dev](https://aniketaslaliya.dev) · [LinkedIn](https://linkedin.com/in/aniket-aslaliya) · [GitHub](https://github.com/AniketAslaliya)
-
----
-
-*Built as a vibe code submission for the Activate AI Fellows Program — Summer 2026*

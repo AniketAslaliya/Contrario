@@ -12,7 +12,7 @@ export function Footer() {
                 Contrario
               </span>
             </Link>
-            <p className="text-ink-400 text-sm mt-3 max-w-xs leading-relaxed">
+            <p className="text-ink-600 text-sm mt-3 max-w-xs leading-relaxed">
               Three investors. One deck. Zero consensus.
               <br />
               The adversarial pitch intelligence platform.
@@ -21,7 +21,7 @@ export function Footer() {
 
           <div className="flex gap-16 md:gap-20">
             <div>
-              <p className="font-sans text-xs text-ink-300 uppercase tracking-[0.15em] mb-4">
+              <p className="font-sans text-xs text-ink-600 uppercase tracking-[0.15em] mb-4">
                 Product
               </p>
               <ul className="space-y-3">
@@ -34,7 +34,7 @@ export function Footer() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-ink-400 hover:text-ink transition-colors duration-300"
+                      className="text-sm text-ink-600 hover:text-ink transition-colors duration-300"
                     >
                       {link.label}
                     </Link>
@@ -44,7 +44,7 @@ export function Footer() {
             </div>
 
             <div>
-              <p className="font-sans text-xs text-ink-300 uppercase tracking-[0.15em] mb-4">
+              <p className="font-sans text-xs text-ink-600 uppercase tracking-[0.15em] mb-4">
                 Connect
               </p>
               <ul className="space-y-3">
@@ -67,7 +67,7 @@ export function Footer() {
                       href={link.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-ink-400 hover:text-ink transition-colors duration-300"
+                      className="text-sm text-ink-600 hover:text-ink transition-colors duration-300"
                     >
                       {link.label}
                     </a>
@@ -83,11 +83,8 @@ export function Footer() {
 
         {/* Bottom row */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-ink-300">
-            © {new Date().getFullYear()} Contrario. Built by Aniket Aslaliya.
-          </p>
-          <p className="text-xs text-ink-300">
-            Activate AI Fellows — Summer 2026
+          <p className="text-xs text-ink-600">
+            © {new Date().getFullYear()} Contrario · Built by Aniket Aslaliya
           </p>
         </div>
       </div>

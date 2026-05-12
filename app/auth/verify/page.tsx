@@ -24,7 +24,7 @@ export default function VerifyPage() {
         <h1 className="font-serif text-3xl text-ink mb-3">
           Check your email
         </h1>
-        <p className="text-sm text-ink-400 mb-8 leading-relaxed">
+        <p className="text-sm text-ink-600 mb-8 leading-relaxed">
           We sent you a sign-in link. Click the link in your email to continue
           to Contrario.
         </p>

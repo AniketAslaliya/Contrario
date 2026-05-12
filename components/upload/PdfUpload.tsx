@@ -2,8 +2,8 @@
 
 import { useSession } from "next-auth/react";
 import { useCallback, useRef, useState } from "react";
-import { extractPitchPdfAction } from "@/app/analyze/pdf-actions";
 import { MAX_PDF_BYTES } from "@/lib/pdf-constants";
+import { extractPdfViaApiRoute } from "@/lib/parse-pdf-client";
 
 import {
   STORAGE_PENDING_META,
@@ -30,7 +30,7 @@ export function PdfUpload({ onPitchReady }: { onPitchReady?: () => void }) {
     try {
       const fd = new FormData();
       fd.set("file", file);
-      const result = await extractPitchPdfAction(fd);
+      const result = await extractPdfViaApiRoute(fd);
 
       if (!result.ok) {
         setError(result.message);

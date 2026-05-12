@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { extractPitchPdfAction } from "@/app/analyze/pdf-actions";
+import { extractPdfViaApiRoute } from "@/lib/parse-pdf-client";
 import {
   STORAGE_PENDING_META,
   STORAGE_PENDING_TEXT,
@@ -22,7 +22,7 @@ export function BatchUploadClient() {
     for (const file of list) {
       const fd = new FormData();
       fd.append("file", file);
-      const r = await extractPitchPdfAction(fd);
+      const r = await extractPdfViaApiRoute(fd);
       if (r.ok) {
         out.push({
           name: file.name,

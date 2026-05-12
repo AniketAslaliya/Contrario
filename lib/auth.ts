@@ -1,11 +1,10 @@
 import type { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase-admin";
 
-// Build providers list dynamically
 const providers: NextAuthOptions["providers"] = [];
 
-// Google OAuth — always available when credentials exist
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   providers.push(
     GoogleProvider({
@@ -15,26 +14,39 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   );
 }
 
-// Credentials provider for development/demo magic-link simulation
-// In production with Supabase adapter, swap this for EmailProvider
+/** Bridge Supabase Auth (magic link) → NextAuth JWT used across the app. */
 providers.push(
   CredentialsProvider({
-    id: "email-login",
-    name: "Email",
+    id: "supabase-bridge",
+    name: "Email link",
     credentials: {
-      email: { label: "Email", type: "email", placeholder: "you@example.com" },
+      access_token: { label: "Access token", type: "password" },
     },
     async authorize(credentials) {
-      // In dev/demo mode: any email signs in
-      // In production: this will be replaced by proper EmailProvider + adapter
-      if (credentials?.email) {
+      const token = credentials?.access_token?.trim();
+      if (!token || !isSupabaseConfigured()) return null;
+
+      try {
+        const supabase = getSupabaseAdmin();
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser(token);
+        if (error || !user?.id) return null;
+
         return {
-          id: credentials.email,
-          email: credentials.email,
-          name: credentials.email.split("@")[0],
+          id: user.id,
+          email: user.email ?? undefined,
+          name:
+            (typeof user.user_metadata?.full_name === "string"
+              ? user.user_metadata.full_name
+              : null) ??
+            user.email?.split("@")[0] ??
+            "User",
         };
+      } catch {
+        return null;
       }
-      return null;
     },
   })
 );
@@ -47,7 +59,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 30 * 24 * 60 * 60,
   },
   callbacks: {
     async jwt({ token, user, account }) {
@@ -69,7 +81,6 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      // After sign-in, redirect to onboarding or dashboard
       if (url.startsWith(baseUrl)) return url;
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       return baseUrl + "/onboarding";

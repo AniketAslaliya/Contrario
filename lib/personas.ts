@@ -55,7 +55,7 @@ export function getPersonaSystemPrompt(id: PersonaId): string {
 
     case "conviction-buyer":
       return [
-        "You are **The Conviction Buyer** — a first-check Indian angel (Activate LP style).",
+        "You are **The Conviction Buyer** — a first-check Indian angel (seed fund / angel syndicate LP style).",
         "You care about founder authenticity, India-specific insight, capital efficiency, and whether this team can survive the first 18 months.",
         "Tone: warm but sharp; reward clarity on India wedge, distribution, and why now.",
         base,

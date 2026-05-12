@@ -4,6 +4,15 @@ import {
 import { MAX_PDF_BYTES } from "@/lib/pdf-constants";
 import { storeAuthenticatedPdf } from "@/lib/deck-storage";
 
+/** Allow lowering cap on hosts with smaller request limits (e.g. Vercel ~4.5MB). */
+export function effectivePdfMaxBytes(): number {
+  const raw = process.env.PDF_UPLOAD_MAX_BYTES?.trim();
+  if (!raw) return MAX_PDF_BYTES;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 1024) return MAX_PDF_BYTES;
+  return Math.min(MAX_PDF_BYTES, Math.floor(n));
+}
+
 export type ParsePdfSuccess = {
   ok: true;
   text: string;
@@ -42,11 +51,12 @@ export async function runPdfPipeline(
     return { ok: false, code: "no_file", message: "Choose a PDF file." };
   }
 
-  if (file.size > MAX_PDF_BYTES) {
+  const cap = effectivePdfMaxBytes();
+  if (file.size > cap) {
     return {
       ok: false,
       code: "too_large",
-      message: `File must be ${MAX_PDF_BYTES / (1024 * 1024)}MB or smaller.`,
+      message: `File must be ${(cap / (1024 * 1024)).toFixed(cap >= 1024 * 1024 ? 0 : 1)}MB or smaller.`,
     };
   }
 
