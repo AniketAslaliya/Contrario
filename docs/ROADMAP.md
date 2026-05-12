@@ -38,7 +38,7 @@
 ## Phase 1 — Core Shell (Days 1–2)
 
 ### M01 · Landing / Hero Page
-**Status:** 🔲 Not started  
+**Status:** ✅ Complete  
 **Priority:** 🔴 P0  
 **Hours:** 2–3  
 **Description:** Public-facing hero with tagline, animated demo preview, CTA to try free  
@@ -53,7 +53,7 @@
 ---
 
 ### M02 · Authentication (Email + Google OAuth)
-**Status:** 🔲 Not started  
+**Status:** ✅ Complete  
 **Priority:** 🔴 P0  
 **Hours:** 2  
 **Description:** NextAuth.js setup with Google OAuth and email magic link  
@@ -67,7 +67,7 @@
 ---
 
 ### M03 · User Role Onboarding
-**Status:** 🔲 Not started  
+**Status:** ✅ Complete  
 **Priority:** 🔴 P0  
 **Hours:** 1.5  
 **Description:** After first login, user picks their role: Founder / Student / Accelerator / Angel / Mentor  
@@ -80,37 +80,37 @@
 ---
 
 ### M04 · PDF Upload + Text Extraction
-**Status:** 🔲 Not started  
+**Status:** ✅ Complete  
 **Priority:** 🔴 P0  
 **Hours:** 2  
 **Description:** Drag-and-drop PDF upload, server-side text extraction using pdf-parse  
 **Acceptance Criteria:**
-- [ ] PDF upload UI with drag-and-drop
-- [ ] Max file size: 10MB enforced
-- [ ] Server action extracts clean text from PDF
-- [ ] Extracted text passed to analysis engine
-- [ ] Error state for corrupt/unreadable PDFs
-- [ ] File stored in Supabase Storage (authenticated users only)
+- [x] PDF upload UI with drag-and-drop
+- [x] Max file size: 10MB enforced
+- [x] Server action extracts clean text from PDF
+- [x] Extracted text passed to analysis engine
+- [x] Error state for corrupt/unreadable PDFs
+- [x] File stored in Supabase Storage (authenticated users only)
 
 ---
 
 ### M05 · Text / Idea Paste Input
-**Status:** 🔲 Not started  
+**Status:** ✅ Complete  
 **Priority:** 🔴 P0  
 **Hours:** 1  
 **Description:** Alternative to PDF — paste pitch text or raw idea description  
 **Acceptance Criteria:**
-- [ ] Textarea with character count (min 100, max 5000)
-- [ ] "What to include" helper tooltip
-- [ ] Tab toggle between PDF upload and text paste
-- [ ] Text passed to analysis engine same as PDF path
+- [x] Textarea with character count (min 100, max 5000)
+- [x] "What to include" helper tooltip
+- [x] Tab toggle between PDF upload and text paste
+- [x] Text passed to analysis engine same as PDF path
 
 ---
 
 ## Phase 2 — Core Engine (Days 2–3) 🔴 MOST CRITICAL
 
 ### M06 · Three-Persona Streaming Analysis Engine
-**Status:** 🔲 Not started  
+**Status:** ✅ Complete  
 **Priority:** 🔴 P0  
 **Hours:** 4  
 **Description:** The heart of Contrario. Fires 3 Claude API calls in parallel with distinct system prompts. Streams tokens to the UI simultaneously.  
@@ -127,13 +127,13 @@ User Input → /api/analyze (POST)
     SSE stream → 3 persona cards update simultaneously
 ```
 **Acceptance Criteria:**
-- [ ] All 3 API calls fire in parallel (check with network tab)
-- [ ] Streaming visible token-by-token per persona
-- [ ] Each persona response structured: Rating (1-10) + 5 specific points + Key concern
-- [ ] Total time to first token < 3 seconds
-- [ ] Total analysis complete < 30 seconds
-- [ ] Graceful error if one persona fails (other two continue)
-- [ ] Guest mode: 1 free analysis, then prompt to sign up
+- [x] All 3 API calls fire in parallel (check with network tab)
+- [x] Streaming visible token-by-token per persona
+- [x] Each persona response structured: Rating (1-10) + 5 specific points + Key concern
+- [x] Total time to first token < 3 seconds
+- [x] Total analysis complete < 30 seconds
+- [x] Graceful error if one persona fails (other two continue)
+- [x] Guest mode: 1 free analysis, then prompt to sign up
 
 ---
 

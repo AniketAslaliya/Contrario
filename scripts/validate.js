@@ -73,6 +73,22 @@ function envExists(key) {
   return match && match[1].trim().length > 0;
 }
 
+/** Raw value from .env.local (empty string if missing). */
+function envRaw(key) {
+  const envPath = path.join(ROOT, ".env.local");
+  if (!fs.existsSync(envPath)) return "";
+  const content = fs.readFileSync(envPath, "utf8");
+  const match = content.match(new RegExp(`^${key}=(.*)$`, "m"));
+  return match ? match[1].trim() : "";
+}
+
+/** Mirrors lib/ai-provider.ts — default is gemini when unset. */
+function activeAiBackend() {
+  const raw = envRaw("AI_PROVIDER").toLowerCase();
+  if (raw === "anthropic" || raw === "claude") return "anthropic";
+  return "gemini";
+}
+
 function fetchUrl(url, timeout = 5000) {
   return new Promise((resolve) => {
     const client = url.startsWith("https") ? https : http;
@@ -136,7 +152,9 @@ const validators = {
     );
     check(
       fileContains("app/page.tsx", "Zero consensus") ||
-        fileContains("app/page.jsx", "Zero consensus"),
+        fileContains("app/page.jsx", "Zero consensus") ||
+        fileContains("app/page.tsx", "Zero&nbsp;consensus") ||
+        fileContains("app/page.jsx", "Zero&nbsp;consensus"),
       "Tagline present in hero",
       "Tagline missing from hero"
     );
@@ -263,10 +281,40 @@ const validators = {
       "Anthropic client MISSING"
     );
     check(
-      envExists("ANTHROPIC_API_KEY"),
-      "ANTHROPIC_API_KEY set",
-      "ANTHROPIC_API_KEY MISSING — analysis will not work"
+      fileExists("lib/gemini.ts") || fileExists("lib/gemini.js"),
+      "Gemini client utility exists",
+      "Gemini client MISSING"
     );
+    check(
+      fileExists("lib/ai-provider.ts") || fileExists("lib/ai-provider.js"),
+      "AI provider switch (lib/ai-provider) exists",
+      "lib/ai-provider.ts MISSING"
+    );
+
+    const backend = activeAiBackend();
+    if (backend === "gemini") {
+      check(
+        envExists("GEMINI_API_KEY"),
+        "GEMINI_API_KEY set (default AI backend)",
+        "GEMINI_API_KEY MISSING — add key or set AI_PROVIDER=anthropic"
+      );
+      check(
+        fileContains("package.json", "@google/generative-ai"),
+        "@google/generative-ai in package.json",
+        "@google/generative-ai NOT installed — run: npm install @google/generative-ai"
+      );
+    } else {
+      check(
+        envExists("ANTHROPIC_API_KEY"),
+        "ANTHROPIC_API_KEY set",
+        "ANTHROPIC_API_KEY MISSING — analysis will not work"
+      );
+      check(
+        fileContains("package.json", "@anthropic-ai/sdk"),
+        "@anthropic-ai/sdk in package.json",
+        "@anthropic-ai/sdk NOT installed — run: npm install @anthropic-ai/sdk"
+      );
+    }
 
     // Check for parallel calls (Promise.all)
     const analyzeRoute =
@@ -298,9 +346,10 @@ const validators = {
     check(personasFile.includes("reality-check") || personasFile.includes("Reality Check"), "Reality Check persona defined", "Reality Check persona MISSING");
 
     check(
-      fileContains("package.json", "@anthropic-ai/sdk"),
-      "@anthropic-ai/sdk in package.json",
-      "@anthropic-ai/sdk NOT installed — run: npm install @anthropic-ai/sdk"
+      fileContains("package.json", "@anthropic-ai/sdk") &&
+        fileContains("package.json", "@google/generative-ai"),
+      "Both LLM SDKs in package.json (Anthropic + Gemini)",
+      "Add missing @anthropic-ai/sdk and/or @google/generative-ai to package.json"
     );
     warn("Manually test: all 3 streams fire simultaneously (check Network tab), first token < 3s");
   },
@@ -404,7 +453,6 @@ async function preDeployChecks() {
   // Env vars
   header("Environment Variables");
   const envVars = [
-    "ANTHROPIC_API_KEY",
     "NEXTAUTH_SECRET",
     "NEXTAUTH_URL",
     "GOOGLE_CLIENT_ID",
@@ -415,6 +463,21 @@ async function preDeployChecks() {
   ];
   envVars.forEach((v) => check(envExists(v), `${v} is set`, `${v} MISSING`));
 
+  header("AI provider (see lib/ai-provider.ts)");
+  if (activeAiBackend() === "gemini") {
+    check(
+      envExists("GEMINI_API_KEY"),
+      "GEMINI_API_KEY is set (default backend)",
+      "GEMINI_API_KEY MISSING — get a key from Google AI Studio, or set AI_PROVIDER=anthropic"
+    );
+  } else {
+    check(
+      envExists("ANTHROPIC_API_KEY"),
+      "ANTHROPIC_API_KEY is set",
+      "ANTHROPIC_API_KEY MISSING"
+    );
+  }
+
   // Critical files
   header("Critical Files");
   [
@@ -422,6 +485,8 @@ async function preDeployChecks() {
     "app/api/analyze/route.ts",
     "lib/personas.ts",
     "lib/anthropic.ts",
+    "lib/gemini.ts",
+    "lib/ai-provider.ts",
     "docs/CONTEXT.md",
   ].forEach((f) => {
     const exists = fileExists(f) || fileExists(f.replace(".ts", ".tsx")) || fileExists(f.replace(".ts", ".js"));
@@ -430,7 +495,7 @@ async function preDeployChecks() {
 
   // Package checks
   header("Dependencies");
-  ["@anthropic-ai/sdk", "pdf-parse", "next-auth"].forEach((pkg) => {
+  ["@anthropic-ai/sdk", "@google/generative-ai", "pdf-parse", "next-auth"].forEach((pkg) => {
     check(
       fileContains("package.json", pkg),
       `${pkg} in package.json`,

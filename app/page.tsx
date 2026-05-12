@@ -114,6 +114,21 @@ export default function LandingPage() {
           </Link>
         </div>
 
+        <p
+          className={`text-center text-sm text-ink-400 -mt-12 mb-16 transition-all duration-700 delay-300 ${
+            mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+          }`}
+        >
+          <Link
+            href="/auth"
+            id="cta-sign-up"
+            className="text-ink font-medium underline-offset-4 hover:underline hover:text-persona-scale transition-colors"
+          >
+            Sign up
+          </Link>{" "}
+          — cloud saves & deck history
+        </p>
+
         {/* Hero visual — warm gradient card with persona preview */}
         <div
           className={`w-full max-w-5xl mx-auto transition-all duration-1000 delay-500 ${

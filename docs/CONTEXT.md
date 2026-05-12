@@ -47,10 +47,10 @@ The conflict map IS the product. That's the insight no competitor has.
 | Validation Script | ✅ Done | /scripts/validate.js |
 | M01 Landing Page | ✅ Done | Hero + demo preview + features + responsive |
 | M02 Auth | ✅ Done | NextAuth.js (Google OAuth + Email magic link) |
-| M03 Onboarding | 🔲 Not started | |
-| M04 PDF Upload | 🔲 Not started | |
-| M05 Text Paste | 🔲 Not started | |
-| M06 Analysis Engine | 🔲 Not started | CORE — parallel Claude API calls |
+| M03 Onboarding | ✅ Done | Role picker · Supabase `profiles` upsert · `/dashboard` \| `/analyze` routing · `/settings` role change |
+| M04 PDF Upload | ✅ Done | `PdfUpload` · `parse-pdf` route · `extractPitchPdfAction` · Storage optional (auth) · sessionStorage handoff for M06 |
+| M05 Text Paste | ✅ Done | `TextInput` · tab toggle · 100–5000 · `sessionStorage` · `title` helper |
+| M06 Analysis Engine | ✅ Done | `POST /api/analyze` SSE · parallel `Promise.all` + `lib/persona-stream` · guest 1-run |
 | M07 Conflict Map UI | 🔲 Not started | CORE — most important UI |
 
 ---
@@ -58,7 +58,7 @@ The conflict map IS the product. That's the insight no competitor has.
 ## TECH STACK (DECIDED)
 - **Framework:** Next.js 14, App Router
 - **Styling:** Tailwind CSS + custom dark theme
-- **AI:** Anthropic API — `claude-sonnet-4-20250514`
+- **AI:** Pluggable backend — **Gemini** (`@google/generative-ai`, default for free-tier dev) or **Anthropic Claude** (`AI_PROVIDER=anthropic`, `claude-sonnet-4-20250514` default). Switch in `lib/ai-provider.ts` + `.env.local`.
 - **PDF Parse:** `pdf-parse` (Node.js, server action)
 - **Auth:** NextAuth.js (Google OAuth + Email magic link)
 - **DB:** Supabase (Postgres)
@@ -70,10 +70,10 @@ The conflict map IS the product. That's the insight no competitor has.
 
 ## ARCHITECTURE DECISIONS (DON'T CHANGE WITHOUT REASON)
 1. **Parallel API calls** — All 3 persona prompts fired simultaneously using `Promise.all()`. NEVER chain them.
-2. **Streaming** — Use Anthropic streaming API. User sees token-by-token output per persona.
+2. **Streaming** — Use the **active** provider’s streaming API (Gemini or Anthropic). User sees token-by-token output per persona. Same parallel `Promise.all` / `Promise.allSettled` contract.
 3. **Edge runtime** on Vercel for analysis route — lowest latency.
 4. **PDF parsed server-side** in a Next.js server action — client never sees the raw file after upload.
-5. **No database for MVP** — session data stored in Supabase only after auth. Guest mode uses localStorage.
+5. **Auth data in Supabase** — User role lives in `public.profiles` (service-role writes). Full analysis history arrives with M06/M10. Guest mode stays localStorage for the free-analysis counter.
 
 ---
 
@@ -96,9 +96,16 @@ contrario/
 │   └── upload/               # M04/M05: Input components
 ├── lib/
 │   ├── anthropic.ts          # Claude API client
+│   ├── gemini.ts             # Gemini API client
+│   ├── ai-provider.ts        # Chooses Gemini vs Anthropic from env
 │   ├── personas.ts           # The 3 persona system prompts
-│   ├── pdf-parser.ts         # PDF extraction utility
-│   └── supabase.ts           # DB client
+│   ├── pdf-parser.ts         # PDF text extraction (server-only)
+│   ├── pdf-pipeline.ts       # Validate + Storage + parse
+│   ├── pdf-constants.ts      # MAX_PDF_BYTES (client-safe)
+│   ├── deck-storage.ts        # Supabase Storage uploads (auth)
+│   ├── profile.ts             # profiles table read/write (server)
+│   ├── supabase-admin.ts      # Supabase service client (server only)
+│   └── user-role.ts           # Shared role enums + routing
 ├── docs/
 │   ├── PRD.md
 │   ├── ROADMAP.md
@@ -117,6 +124,8 @@ All 3 persona prompts live in `/lib/personas.ts`.
 
 ## ENVIRONMENT VARIABLES NEEDED
 ```env
+AI_PROVIDER=gemini
+GEMINI_API_KEY=
 ANTHROPIC_API_KEY=
 NEXTAUTH_SECRET=
 NEXTAUTH_URL=
@@ -125,6 +134,9 @@ GOOGLE_CLIENT_SECRET=
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SUPABASE_DECK_BUCKET=deck-uploads
+
+# SQL: run once in Supabase SQL editor — supabase/migrations/20260512120000_profiles.sql
 ```
 
 ---
@@ -147,6 +159,24 @@ SUPABASE_SERVICE_ROLE_KEY=
 - **Next session should start with:** M03 (Onboarding) + M04 (PDF Upload) + M05 (Text Paste) + M06 (Analysis Engine)
 - **Blockers:** Need GOOGLE_CLIENT_ID/SECRET, NEXTAUTH_SECRET in .env.local for auth to work end-to-end
 
+### Session 003 — May 12, 2026
+- **Done:** M03 (User role onboarding) — `/onboarding` gate after auth, roles persisted via Supabase `profiles`, founder/student/angel → `/analyze`, accelerator/mentor → `/dashboard`, `/settings` to change role. SQL migration checked in under `supabase/migrations/20260512120000_profiles.sql`. M00 validated at 100% (`node scripts/validate.js --module=M00`).
+- **Decisions:** Server actions return `{ ok }` plus client-side `router.push` (avoids swallowed `redirect()` from actions). Dashboard is restricted to accelerator + mentor once Supabase is configured.
+- **Next session should start with:** M04 PDF upload + text extraction (`parse-pdf` route), then M05 text paste shell so M06 can consume one input pipe.
+- **Blockers:** Run the profiles migration in Supabase and set Supabase URL + service role keys in `.env.local` so onboarding save works end-to-end.
+
+### Session 004 — May 12, 2026
+- **Done:** Pluggable LLM layer — `lib/gemini.ts`, `lib/anthropic.ts`, `lib/ai-provider.ts` (default **Gemini** for free-tier). `.env.example` documents `AI_PROVIDER`, `GEMINI_*`, optional `DATABASE_URL` notes (Supabase pooler if IPv4), and never committing passwords. `scripts/validate.js` M06 + pre-deploy check the correct API key for the active backend. Installed `@google/generative-ai`.
+- **Decisions:** Fellows MVP can ship on Gemini; swap to Claude with `AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY` when budget allows. **Do not** paste real DB hosts/passwords into committed files — only `.env.local`.
+- **Next session should start with:** M04 / M05 input pipeline, then M06 wiring `assertActiveLlmConfigured()` + parallel streams for the chosen provider.
+- **Blockers:** User must add `GEMINI_API_KEY` (AI Studio) for local analysis tests when using defaults; optional `npx skills add supabase/agent-skills` is convenience-only.
+
+### Session 006 — May 12, 2026
+- **Done:** M05 (text paste — `components/upload/TextInput.tsx`, tab toggle with PDF on `/analyze`, helper `title` + visible checklist). M06 (`POST /api/analyze` SSE, `lib/personas.ts` + `lib/persona-stream.ts` parallel Gemini/Anthropic streaming, `AnalyzeWorkspace` + `PersonaStreamColumn`, guest one-run via `localStorage`). M01 validator fixed for `Zero&nbsp;consensus`; hero adds `Sign up` link to `/auth`. Single env template remains `.env.example` only — `.env.local` gitignored.
+- **Decisions:** Serialized SSE writes for thread-safe multiplexing; Anthropic uses MessageStream `text` events; API input min 40 chars (paste tab still 100+ for UX).
+- **Next session should start with:** M07 conflict map zones + M08 consensus red flags on top of streaming output.
+- **Blockers:** `node scripts/validate.js --module=M06` requires `GEMINI_API_KEY` (default AI) or `AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY` in `.env.local`.
+
 ---
 
 ## RULES FOR AI ASSISTANTS READING THIS FILE
@@ -154,6 +184,6 @@ SUPABASE_SERVICE_ROLE_KEY=
 2. Always update the SESSION LOG at the end of your work
 3. Always update the STATUS table when a module changes
 4. The conflict map (M07) is the most important UI — never deprioritize it
-5. All Claude API calls must be parallel — if you write sequential calls, you're wrong
+5. All LLM persona calls must be parallel (`Promise.all` / `Promise.allSettled`) — if you write sequential calls, you're wrong
 6. Design must be dark and premium — no white backgrounds on main app pages
 7. This is a fellowship submission — every commit message should be clean

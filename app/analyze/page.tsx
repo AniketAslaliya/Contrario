@@ -1,24 +1,29 @@
 "use client";
 
 import Link from "next/link";
+import { AnalyzeWorkspace } from "./AnalyzeWorkspace";
 
 export default function AnalyzePage() {
   return (
-    <main className="relative min-h-screen flex items-center justify-center px-6">
-      <div className="max-w-lg text-center">
-        <div className="pill mx-auto mb-8">Coming Soon</div>
+    <main className="relative min-h-screen flex flex-col items-center px-6 py-16 md:py-20">
+      <div className="max-w-2xl text-center mb-6">
+        <div className="pill mx-auto mb-8">Analyze</div>
         <h1 className="font-serif text-5xl md:text-6xl text-ink mb-6">
-          Analysis <span className="italic text-muted-word">Engine</span>
+          Three lenses on your <span className="italic text-muted-word">pitch</span>
         </h1>
-        <p className="text-ink-400 text-base leading-relaxed mb-10">
-          The three-persona parallel analysis engine is under construction.
-          Upload your pitch deck and get streaming feedback from The Scale
-          Chaser, The Conviction Buyer, and The Reality Check — simultaneously.
+        <p className="text-ink-400 text-base leading-relaxed">
+          Upload a PDF or paste your narrative — we extract and stream three
+          investor personas in parallel (M06).
         </p>
-        <Link href="/" className="btn-secondary">
+        <Link
+          href="/"
+          className="inline-block mt-8 text-sm text-ink-400 hover:text-ink transition-colors"
+        >
           ← Back to home
         </Link>
       </div>
+
+      <AnalyzeWorkspace />
     </main>
   );
 }

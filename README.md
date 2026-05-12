@@ -44,7 +44,7 @@ Contrario fires **three investor archetypes simultaneously** against your pitch 
 | Layer | Technology |
 |---|---|
 | Framework | Next.js 14 (App Router) |
-| AI Engine | Anthropic Claude claude-sonnet-4-20250514 |
+| AI Engine | Gemini (default) or Anthropic Claude — `AI_PROVIDER` in `.env.local` |
 | Styling | Tailwind CSS |
 | Auth | NextAuth.js |
 | Database | Supabase |
@@ -63,6 +63,7 @@ cd Contrario
 npm install
 
 # Set up environment variables
+# Copy the single env template (never commit secrets)
 cp .env.example .env.local
 # Fill in your keys (see docs/CONTEXT.md for full list)
 
@@ -105,7 +106,10 @@ See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the full breakdown. Current priorit
 - [x] M00: Foundation docs
 - [x] M01: Landing page
 - [x] M02: Auth
-- [ ] M06: Analysis engine (core)
+- [x] M03: User role onboarding (Supabase profiles)
+- [x] M04: PDF upload + server-side text extraction
+- [x] M05: Text paste + analyze tabs
+- [x] M06: Streaming analysis API
 - [ ] M07: Conflict map UI
 
 ---

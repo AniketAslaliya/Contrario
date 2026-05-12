@@ -1,0 +1,242 @@
+"use client";
+
+import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { useCallback, useMemo, useState } from "react";
+import {
+  ANALYSIS_INPUT_MIN_CHARS,
+  GUEST_ANALYSIS_KEY,
+  PASTE_MIN_CHARS,
+  STORAGE_PENDING_TEXT,
+} from "@/lib/analyze-input";
+import type { PersonaId } from "@/lib/personas";
+import { PERSONA_IDS } from "@/lib/personas";
+import { PersonaStreamColumn } from "@/components/persona-card/PersonaStreamColumn";
+import { PdfUpload } from "@/components/upload/PdfUpload";
+import { TextInput } from "@/components/upload/TextInput";
+
+type Tab = "pdf" | "paste";
+
+const emptyOutputs = (): Record<PersonaId, string> => ({
+  "scale-chaser": "",
+  "conviction-buyer": "",
+  "reality-check": "",
+});
+
+const emptyErrs = (): Record<PersonaId, string | null> => ({
+  "scale-chaser": null,
+  "conviction-buyer": null,
+  "reality-check": null,
+});
+
+function isPersonaId(s: string): s is PersonaId {
+  return (PERSONA_IDS as readonly string[]).includes(s);
+}
+
+export function AnalyzeWorkspace() {
+  const { status } = useSession();
+  const [tab, setTab] = useState<Tab>("pdf");
+  const [running, setRunning] = useState(false);
+  const [outputs, setOutputs] = useState(emptyOutputs);
+  const [err, setErr] = useState(emptyErrs);
+  const [banner, setBanner] = useState<string | null>(null);
+  const [inputRev, setInputRev] = useState(0);
+  const [guestRev, setGuestRev] = useState(0);
+
+  const guestBlocked = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    if (status === "authenticated") return false;
+    try {
+      const n = Number(localStorage.getItem(GUEST_ANALYSIS_KEY) || "0");
+      return n >= 1;
+    } catch {
+      return false;
+    }
+  }, [status, guestRev]);
+
+  const readPitchText = useCallback(() => {
+    try {
+      return sessionStorage.getItem(STORAGE_PENDING_TEXT)?.trim() ?? "";
+    } catch {
+      return "";
+    }
+  }, []);
+
+  const canRun = useCallback(() => {
+    const text = readPitchText();
+    if (text.length < ANALYSIS_INPUT_MIN_CHARS) return false;
+    if (tab === "paste" && text.length < PASTE_MIN_CHARS) return false;
+    return true;
+  }, [readPitchText, tab, inputRev]);
+
+  const bumpInput = useCallback(() => setInputRev((n) => n + 1), []);
+
+  const runAnalysis = useCallback(async () => {
+    setBanner(null);
+    const text = readPitchText();
+    if (text.length < ANALYSIS_INPUT_MIN_CHARS) {
+      setBanner(
+        `Add at least ${ANALYSIS_INPUT_MIN_CHARS} characters (extract a PDF or paste a pitch).`
+      );
+      return;
+    }
+    if (tab === "paste" && text.length < PASTE_MIN_CHARS) {
+      setBanner(`Paste path needs at least ${PASTE_MIN_CHARS} characters.`);
+      return;
+    }
+    if (guestBlocked) {
+      setBanner("Sign in to run another analysis — guests get one free run.");
+      return;
+    }
+
+    setRunning(true);
+    setOutputs(emptyOutputs());
+    setErr(emptyErrs());
+
+    try {
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as { error?: string };
+        setBanner(j.error || `Request failed (${res.status})`);
+        setRunning(false);
+        return;
+      }
+
+      const reader = res.body?.getReader();
+      if (!reader) {
+        setBanner("No response stream.");
+        setRunning(false);
+        return;
+      }
+
+      const dec = new TextDecoder();
+      let carry = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (value) {
+          carry += dec.decode(value, { stream: true });
+        }
+        const blocks = carry.split("\n\n");
+        carry = blocks.pop() ?? "";
+
+        for (const block of blocks) {
+          if (!block.trimStart().startsWith("data:")) continue;
+          const line = block.replace(/^[\s\r\n]*data:\s*/i, "").trim();
+          if (line === "[DONE]") continue;
+          let payload: Record<string, unknown>;
+          try {
+            payload = JSON.parse(line) as Record<string, unknown>;
+          } catch {
+            continue;
+          }
+
+          const pid = payload.persona as string | undefined;
+          if (!pid || !isPersonaId(pid)) continue;
+
+          if (typeof payload.delta === "string") {
+            setOutputs((o) => ({
+              ...o,
+              [pid]: (o[pid] || "") + payload.delta,
+            }));
+          }
+          if (payload.error) {
+            setErr((e) => ({
+              ...e,
+              [pid]: String(payload.error),
+            }));
+          }
+        }
+
+        if (done) break;
+      }
+
+      if (status !== "authenticated") {
+        try {
+          localStorage.setItem(GUEST_ANALYSIS_KEY, "1");
+          setGuestRev((n) => n + 1);
+        } catch {
+          /* ignore */
+        }
+      }
+    } catch (e) {
+      setBanner(e instanceof Error ? e.message : "Analysis failed.");
+    } finally {
+      setRunning(false);
+    }
+  }, [guestBlocked, readPitchText, status, tab]);
+
+  return (
+    <div className="w-full max-w-6xl mx-auto px-0">
+      <div className="flex flex-wrap gap-2 justify-center mb-8">
+        <button
+          type="button"
+          onClick={() => setTab("pdf")}
+          className={`rounded-full px-5 py-2 text-sm font-medium transition-colors ${
+            tab === "pdf"
+              ? "bg-ink text-cream-100"
+              : "bg-cream-100 border border-cream-400 text-ink-400 hover:border-ink/20"
+          }`}
+        >
+          PDF upload
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("paste")}
+          className={`rounded-full px-5 py-2 text-sm font-medium transition-colors ${
+            tab === "paste"
+              ? "bg-ink text-cream-100"
+              : "bg-cream-100 border border-cream-400 text-ink-400 hover:border-ink/20"
+          }`}
+        >
+          Paste text
+        </button>
+      </div>
+
+      {tab === "pdf" ? (
+        <PdfUpload onPitchReady={bumpInput} />
+      ) : (
+        <TextInput onPitchReady={bumpInput} />
+      )}
+
+      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-10 mb-6">
+        <button
+          type="button"
+          onClick={runAnalysis}
+          disabled={running || !canRun() || guestBlocked}
+          className="btn-primary !rounded-2xl disabled:opacity-50 disabled:pointer-events-none"
+        >
+          {running ? "Running three investors…" : "Run adversarial analysis"}
+        </button>
+        {guestBlocked ? (
+          <Link href="/auth" className="text-sm text-persona-scale font-medium">
+            Sign in for unlimited runs →
+          </Link>
+        ) : null}
+      </div>
+
+      {banner ? (
+        <p className="text-center text-sm text-persona-scale mb-6 max-w-lg mx-auto">
+          {banner}
+        </p>
+      ) : null}
+
+      <div className="grid md:grid-cols-3 gap-4 mt-4">
+        {PERSONA_IDS.map((id) => (
+          <PersonaStreamColumn
+            key={id}
+            id={id}
+            text={outputs[id]}
+            streaming={running}
+            error={err[id]}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}

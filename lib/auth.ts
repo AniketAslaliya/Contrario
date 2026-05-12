@@ -1,4 +1,4 @@
-import NextAuth, { type NextAuthOptions } from "next-auth";
+import type { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 
@@ -61,8 +61,10 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).id = token.id;
-        (session.user as any).provider = token.provider;
+        session.user.id =
+          typeof token.id === "string" ? token.id : session.user.id;
+        session.user.provider =
+          typeof token.provider === "string" ? token.provider : undefined;
       }
       return session;
     },
