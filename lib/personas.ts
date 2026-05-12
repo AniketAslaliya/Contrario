@@ -3,6 +3,8 @@
  * Do not duplicate long prompts in API routes — import from this file.
  */
 
+import type { PitchSlide } from "@/lib/slide-split";
+
 export const PERSONA_IDS = [
   "scale-chaser",
   "conviction-buyer",
@@ -69,13 +71,46 @@ export function getPersonaSystemPrompt(id: PersonaId): string {
   }
 }
 
-export function buildUserPromptForPitch(deckText: string): string {
-  return [
+const SLIDE_SECTION_APPEND = `
+When a SLIDE MAP appears in the user message, you MUST append these Markdown blocks after the **Investment signal** line:
+
+## Per slide
+Use at most 8 subheadings, each exactly:
+### Slide N — short label
+with 1–2 sentences of investor-specific feedback for that slide. Skip slides with nothing actionable.
+`.trim();
+
+export function getPersonaSystemPromptWithSlides(
+  id: PersonaId,
+  withSlides: boolean
+): string {
+  const base = getPersonaSystemPrompt(id);
+  if (!withSlides) return base;
+  return `${base}\n\n${SLIDE_SECTION_APPEND}`;
+}
+
+export function buildUserPromptForPitch(
+  deckText: string,
+  options?: { slides?: PitchSlide[] | null }
+): string {
+  const lines: string[] = [
     "You are reviewing founder pitch content (deck text extraction or pasted idea).",
     "Read the entire pitch below, then respond using ONLY the required Markdown sections in your system contract.",
     "",
-    "--- PITCH CONTENT ---",
-    deckText.trim(),
-    "--- END ---",
-  ].join("\n");
+  ];
+  if (options?.slides && options.slides.length >= 2) {
+    lines.push(
+      "--- SLIDE MAP (structured segments — same deck as the continuous text below) ---"
+    );
+    for (const s of options.slides) {
+      lines.push(
+        `\n### Slide ${s.index} — ${s.title}\n${s.content.trim()}`
+      );
+    }
+    lines.push("");
+  }
+  lines.push("--- PITCH CONTENT (full continuous text) ---");
+  lines.push(deckText.trim());
+  lines.push("--- END ---");
+  return lines.join("\n");
 }

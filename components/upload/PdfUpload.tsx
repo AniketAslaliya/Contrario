@@ -42,6 +42,7 @@ export function PdfUpload({ onPitchReady }: { onPitchReady?: () => void }) {
         sessionStorage.setItem(
           STORAGE_PENDING_META,
           JSON.stringify({
+            fileName: file.name,
             pages: result.numPages,
             bytes: result.byteLength,
             stored: Boolean(result.storedObjectPath),

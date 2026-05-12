@@ -181,29 +181,28 @@ User Input → /api/analyze (POST)
 ## Phase 3 — User Surfaces (Days 3–4)
 
 ### M09 · Per-Slide Breakdown
-**Status:** 🔲 Not started  
+**Status:** ✅ Complete  
 **Priority:** 🟡 P1  
 **Hours:** 2  
 **Description:** When PDF is uploaded with detectable slide structure, tag feedback to specific slides  
 **Acceptance Criteria:**
-- [ ] Slide detection attempts to identify slide breaks in extracted text
-- [ ] Each persona comment tagged to a slide number where possible
-- [ ] "Slide 4: Market Size" section gets targeted feedback
-- [ ] Falls back gracefully if slides can't be detected
+- [x] Slide detection in `lib/slide-split.ts` (form-feed pages, `Slide N` headings, numbered sections)
+- [x] Personas receive optional SLIDE MAP + `getPersonaSystemPromptWithSlides` → **Per slide** Markdown section
+- [x] Targeted responses when ≥2 segments detected; otherwise flat pitch (no slides in POST body)
+- [x] Falls back gracefully when slides can't be detected
 
 ---
 
 ### M10 · Founder Dashboard — Session History
-**Status:** 🔲 Not started  
+**Status:** ✅ Complete  
 **Priority:** 🟡 P1  
 **Hours:** 2  
 **Description:** Authenticated founders see list of past analyses with scores and dates  
 **Acceptance Criteria:**
-- [ ] Dashboard page at /dashboard
-- [ ] Lists all past analyses with: date, deck name, avg score across 3 personas
-- [ ] Click to view full past analysis
-- [ ] Empty state with CTA to run first analysis
-- [ ] Data stored in Supabase
+- [x] `/dashboard` lists analyses for founder / student / angel (empty state + rows); accelerator/mentor keep org shell
+- [x] Row shows date, title, avg score; opens `/dashboard/analysis/[id]`
+- [x] Detail page replays personas + conflict map + red flags (`AnalysisReplay`)
+- [x] Supabase `analyses` table + `lib/analysis-store.ts` · `saveAnalysisAction` (role-gated save)
 
 ---
 

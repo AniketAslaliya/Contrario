@@ -7,12 +7,18 @@ import {
   ANALYSIS_INPUT_MIN_CHARS,
   GUEST_ANALYSIS_KEY,
   PASTE_MIN_CHARS,
+  STORAGE_PENDING_META,
   STORAGE_PENDING_TEXT,
 } from "@/lib/analyze-input";
 import type { SynthesisPayload } from "@/lib/synthesis/post-analysis";
-import { extractScoreFromMarkdown } from "@/lib/parse-persona-output";
+import {
+  averageScoreFromOutputs,
+  extractScoreFromMarkdown,
+} from "@/lib/parse-persona-output";
 import type { PersonaId } from "@/lib/personas";
 import { PERSONA_IDS } from "@/lib/personas";
+import { detectSlidesFromPitch } from "@/lib/slide-split";
+import { saveAnalysisAction } from "@/app/analyze/save-analysis-action";
 import { ConflictMap } from "@/components/conflict-map/ConflictMap";
 import { RedFlagsSummary } from "@/components/RedFlagsSummary";
 import { PersonaStreamColumn } from "@/components/persona-card/PersonaStreamColumn";
@@ -37,6 +43,33 @@ function isPersonaId(s: string): s is PersonaId {
   return (PERSONA_IDS as readonly string[]).includes(s);
 }
 
+function readPendingMeta(): { title: string; source: "paste" | "pdf" } {
+  if (typeof window === "undefined") {
+    return { title: "Pitch", source: "paste" };
+  }
+  try {
+    const raw = sessionStorage.getItem(STORAGE_PENDING_META);
+    if (!raw) return { title: "Pitch", source: "paste" };
+    const m = JSON.parse(raw) as {
+      source?: string;
+      fileName?: string;
+      pages?: number;
+    };
+    if (m.fileName && typeof m.fileName === "string") {
+      return {
+        title: m.fileName.replace(/\.pdf$/i, "") || "Deck",
+        source: "pdf",
+      };
+    }
+    if (m.pages != null && typeof m.pages === "number") {
+      return { title: "Uploaded deck", source: "pdf" };
+    }
+    return { title: "Pasted pitch", source: "paste" };
+  } catch {
+    return { title: "Pitch", source: "paste" };
+  }
+}
+
 export function AnalyzeWorkspace() {
   const { status } = useSession();
   const [tab, setTab] = useState<Tab>("pdf");
@@ -48,6 +81,7 @@ export function AnalyzeWorkspace() {
   const [guestRev, setGuestRev] = useState(0);
   const [synthesis, setSynthesis] = useState<SynthesisPayload | null>(null);
   const [synthesisError, setSynthesisError] = useState<string | null>(null);
+  const [slideHint, setSlideHint] = useState<number | null>(null);
 
   const scores = useMemo(() => {
     const s: Record<PersonaId, string | null> = {
@@ -114,12 +148,24 @@ export function AnalyzeWorkspace() {
     setErr(emptyErrs());
     setSynthesis(null);
     setSynthesisError(null);
+    setSlideHint(null);
+
+    const slideOutline = detectSlidesFromPitch(text);
+    if (slideOutline && slideOutline.length >= 2) {
+      setSlideHint(slideOutline.length);
+    }
+
+    const localOut = emptyOutputs();
+    let localSynthesis: SynthesisPayload | null = null;
 
     try {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({
+          text,
+          slides: slideOutline ?? undefined,
+        }),
       });
 
       if (!res.ok) {
@@ -159,7 +205,9 @@ export function AnalyzeWorkspace() {
           }
 
           if (payload.synthesis && typeof payload.synthesis === "object") {
-            setSynthesis(payload.synthesis as SynthesisPayload);
+            const syn = payload.synthesis as SynthesisPayload;
+            localSynthesis = syn;
+            setSynthesis(syn);
           }
           if (typeof payload.synthesisError === "string") {
             setSynthesisError(payload.synthesisError);
@@ -169,6 +217,7 @@ export function AnalyzeWorkspace() {
           if (!pid || !isPersonaId(pid)) continue;
 
           if (typeof payload.delta === "string") {
+            localOut[pid] = (localOut[pid] || "") + payload.delta;
             setOutputs((o) => ({
               ...o,
               [pid]: (o[pid] || "") + payload.delta,
@@ -183,6 +232,23 @@ export function AnalyzeWorkspace() {
         }
 
         if (done) break;
+      }
+
+      if (status === "authenticated") {
+        const meta = readPendingMeta();
+        const avg = averageScoreFromOutputs(localOut);
+        const saved = await saveAnalysisAction({
+          title: meta.title,
+          source: meta.source,
+          inputPreview: text.slice(0, 2000),
+          personaOutputs: localOut,
+          synthesis: localSynthesis,
+          slideOutline,
+          avgScore: avg,
+        });
+        if (!saved.ok) {
+          setBanner(saved.message);
+        }
       }
 
       if (status !== "authenticated") {
@@ -233,7 +299,7 @@ export function AnalyzeWorkspace() {
         <TextInput onPitchReady={bumpInput} />
       )}
 
-      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-10 mb-6">
+      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-10 mb-6 flex-wrap">
         <button
           type="button"
           onClick={runAnalysis}
@@ -242,12 +308,28 @@ export function AnalyzeWorkspace() {
         >
           {running ? "Running three investors…" : "Run adversarial analysis"}
         </button>
+        {status === "authenticated" ? (
+          <Link
+            href="/dashboard"
+            className="text-sm text-ink-400 hover:text-ink font-medium"
+          >
+            Analysis history →
+          </Link>
+        ) : null}
         {guestBlocked ? (
           <Link href="/auth" className="text-sm text-persona-scale font-medium">
             Sign in for unlimited runs →
           </Link>
         ) : null}
       </div>
+
+      {slideHint !== null && slideHint >= 2 ? (
+        <p className="text-center text-xs text-ink-400 mb-4 max-w-xl mx-auto leading-relaxed">
+          Detected {slideHint} deck segments — investors add an optional{" "}
+          <strong className="text-ink-500 font-medium">Per slide</strong> section
+          when structure is clear.
+        </p>
+      ) : null}
 
       {banner ? (
         <p className="text-center text-sm text-persona-scale mb-6 max-w-lg mx-auto">

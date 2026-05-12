@@ -3,17 +3,24 @@ import { getGeminiGenerativeModel } from "@/lib/gemini";
 import { getAiBackend } from "@/lib/ai-provider";
 import {
   buildUserPromptForPitch,
-  getPersonaSystemPrompt,
+  getPersonaSystemPromptWithSlides,
   type PersonaId,
 } from "@/lib/personas";
+import type { PitchSlide } from "@/lib/slide-split";
+
+export type PersonaStreamOptions = { slides?: PitchSlide[] | null };
 
 async function* streamGeminiPersona(
   id: PersonaId,
-  pitch: string
+  pitch: string,
+  opts?: PersonaStreamOptions
 ): AsyncGenerator<string> {
-  const sys = getPersonaSystemPrompt(id);
+  const withSlides = Boolean(opts?.slides && opts.slides.length >= 2);
+  const sys = getPersonaSystemPromptWithSlides(id, withSlides);
   const model = getGeminiGenerativeModel(undefined, sys);
-  const prompt = buildUserPromptForPitch(pitch);
+  const prompt = buildUserPromptForPitch(pitch, {
+    slides: withSlides ? opts!.slides : undefined,
+  });
 
   const result = await model.generateContentStream({
     contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -27,14 +34,23 @@ async function* streamGeminiPersona(
 
 async function* streamAnthropicPersona(
   id: PersonaId,
-  pitch: string
+  pitch: string,
+  opts?: PersonaStreamOptions
 ): AsyncGenerator<string> {
+  const withSlides = Boolean(opts?.slides && opts.slides.length >= 2);
   const client = getAnthropicClient();
   const stream = client.messages.stream({
     model: DEFAULT_ANTHROPIC_MODEL,
     max_tokens: 8192,
-    system: getPersonaSystemPrompt(id),
-    messages: [{ role: "user", content: buildUserPromptForPitch(pitch) }],
+    system: getPersonaSystemPromptWithSlides(id, withSlides),
+    messages: [
+      {
+        role: "user",
+        content: buildUserPromptForPitch(pitch, {
+          slides: withSlides ? opts!.slides : undefined,
+        }),
+      },
+    ],
   });
 
   const queue: string[] = [];
@@ -73,12 +89,13 @@ async function* streamAnthropicPersona(
 /** Parallel consumers await three independent generators created from this factory. */
 export async function* streamPersonaText(
   id: PersonaId,
-  pitch: string
+  pitch: string,
+  opts?: PersonaStreamOptions
 ): AsyncGenerator<string> {
   const backend = getAiBackend();
   if (backend === "gemini") {
-    yield* streamGeminiPersona(id, pitch);
+    yield* streamGeminiPersona(id, pitch, opts);
   } else {
-    yield* streamAnthropicPersona(id, pitch);
+    yield* streamAnthropicPersona(id, pitch, opts);
   }
 }

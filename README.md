@@ -112,6 +112,8 @@ See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the full breakdown. Current priorit
 - [x] M06: Streaming analysis API
 - [x] M07: Conflict map UI
 - [x] M08: Consensus red flags
+- [x] M09: Per-slide breakdown
+- [x] M10: Dashboard session history
 
 ---
 

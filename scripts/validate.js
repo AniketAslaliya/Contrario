@@ -400,6 +400,32 @@ const validators = {
     warn("Manually test: appears after all 3 streams complete, shows max 3 items, red-tinted styling");
   },
 
+  M09: () => {
+    header("M09 · Per-Slide Breakdown");
+    check(
+      fileExists("lib/slide-split.ts") || fileExists("lib/slide-split.js"),
+      "Slide detection (lib/slide-split) exists",
+      "lib/slide-split.ts MISSING"
+    );
+    check(
+      fileContains("lib/personas.ts", "SLIDE MAP"),
+      "User prompt can carry a slide map (personas.ts)",
+      "M09: add SLIDE MAP block in buildUserPromptForPitch"
+    );
+    check(
+      fileContains("app/api/analyze/route.ts", "slides") &&
+        fileContains("app/api/analyze/route.ts", "parseSlidesPayload"),
+      "Analyze API parses optional slides for streaming",
+      "M09: wire slides in app/api/analyze/route.ts"
+    );
+    check(
+      fileContains("app/analyze/AnalyzeWorkspace.tsx", "detectSlidesFromPitch"),
+      "Analyze workspace detects slides from pitch text",
+      "M09: call detectSlidesFromPitch before POST /api/analyze"
+    );
+    warn("Manually test: PDF with page breaks or Slide N: markers yields Per slide in output");
+  },
+
   M10: () => {
     header("M10 · Founder Dashboard — Session History");
     check(
@@ -407,6 +433,23 @@ const validators = {
         fileExists("app/dashboard/page.jsx"),
       "Dashboard page exists",
       "Dashboard page MISSING"
+    );
+    check(
+      fileExists("lib/analysis-store.ts") || fileExists("lib/analysis-store.js"),
+      "Analysis store (Supabase) exists",
+      "lib/analysis-store.ts MISSING"
+    );
+    check(
+      fileExists("app/dashboard/analysis/[id]/page.tsx") ||
+        fileExists("app/dashboard/analysis/[id]/page.jsx"),
+      "Saved analysis detail route exists",
+      "app/dashboard/analysis/[id]/page.tsx MISSING"
+    );
+    check(
+      fileContains("app/analyze/save-analysis-action.ts", "insertAnalysis") ||
+        fileContains("app/analyze/save-analysis-action.ts", "saveAnalysis"),
+      "Server action saves completed analyses",
+      "Wire saveAnalysisAction after analyze stream"
     );
     check(
       envExists("NEXT_PUBLIC_SUPABASE_URL"),

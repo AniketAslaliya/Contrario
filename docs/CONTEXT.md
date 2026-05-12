@@ -53,6 +53,8 @@ The conflict map IS the product. That's the insight no competitor has.
 | M06 Analysis Engine | ✅ Done | `POST /api/analyze` SSE · parallel `Promise.all` + `lib/persona-stream` · guest 1-run |
 | M07 Conflict Map UI | ✅ Done | `lib/synthesis/post-analysis` · `ConflictMap` · SSE `synthesis` after streams |
 | M08 Red Flags Summary | ✅ Done | `RedFlagsSummary` · max 3 consensus rows with fixes |
+| M09 Per-Slide Breakdown | ✅ Done | `lib/slide-split` · optional slide map + **Per slide** persona sections |
+| M10 Session History | ✅ Done | Supabase `analyses` · `/dashboard` list · `/dashboard/analysis/[id]` replay |
 
 ---
 
@@ -74,7 +76,7 @@ The conflict map IS the product. That's the insight no competitor has.
 2. **Streaming** — Use the **active** provider’s streaming API (Gemini or Anthropic). User sees token-by-token output per persona. Same parallel `Promise.all` / `Promise.allSettled` contract.
 3. **Node.js runtime** for `/api/analyze` — Persona streaming + PDF deps need Node (not Edge).
 4. **PDF parsed server-side** in a Next.js server action — client never sees the raw file after upload.
-5. **Auth data in Supabase** — User role lives in `public.profiles` (service-role writes). Full analysis history arrives with M06/M10. Guest mode stays localStorage for the free-analysis counter.
+5. **Auth data in Supabase** — User role lives in `public.profiles` (service-role writes). Analysis history in `public.analyses` (M10). Guest mode stays localStorage for the free-analysis counter.
 
 ---
 
@@ -187,6 +189,10 @@ NEXT_PUBLIC_SUPABASE_DECK_BUCKET=deck-uploads
 ### Session 008 — May 12, 2026
 - **Done:** Validators and docs treat **Gemini as the required LLM for the current phase** (`GEMINI_API_KEY` enforced in `scripts/validate.js` M06 + `--pre-deploy`). Anthropic remains optional unless `AI_PROVIDER=anthropic`. Updated `lib/ai-provider.ts` comment, `.env.example`, `README.md`, `docs/CONTEXT.md`.
 - **Next:** Add your Gemini key to `.env.local` — `node scripts/validate.js --module=M06` should hit 100%.
+
+### Session 009 — May 12, 2026
+- **Done:** M09 (slide detection + slide map in prompts + optional **Per slide** output) · M10 (`analyses` migration, `lib/analysis-store`, `saveAnalysisAction` for founder/student/angel, dashboard history + detail replay). `PdfUpload` stores `fileName` for titles. `.env.example` cleared of real Gemini key — use `.env.local` only; user should **rotate** any key that was committed.
+- **Next:** Run `analyses` migration in Supabase SQL editor; verify history save end-to-end when signed in as founder.
 
 ---
 

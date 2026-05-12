@@ -10,9 +10,31 @@ import type { PersonaId } from "@/lib/personas";
 import { PERSONA_IDS } from "@/lib/personas";
 import { streamPersonaText } from "@/lib/persona-stream";
 import { synthesizeConflictAndFlags } from "@/lib/synthesis/post-analysis";
+import type { PitchSlide } from "@/lib/slide-split";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
+
+function parseSlidesPayload(body: unknown): PitchSlide[] | null {
+  const slides = (body as { slides?: unknown }).slides;
+  if (!Array.isArray(slides) || slides.length < 2) return null;
+  const out: PitchSlide[] = [];
+  for (const item of slides.slice(0, 40)) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    const index = Number(o.index);
+    const title = String(o.title ?? "Slide");
+    const content = String(o.content ?? "").trim();
+    if (!Number.isFinite(index) || index < 1) continue;
+    if (content.length < 20) continue;
+    out.push({
+      index,
+      title: title.slice(0, 120),
+      content: content.slice(0, 50_000),
+    });
+  }
+  return out.length >= 2 ? out : null;
+}
 
 /**
  * SSE stream events:
@@ -35,6 +57,7 @@ export async function POST(req: NextRequest) {
       ? (body as { text: string }).text.trim()
       : "";
 
+  const slidesForStream = parseSlidesPayload(body);
   if (text.length < ANALYSIS_INPUT_MIN_CHARS) {
     return Response.json(
       { error: `Pitch text must be at least ${ANALYSIS_INPUT_MIN_CHARS} characters.` },
@@ -87,7 +110,9 @@ export async function POST(req: NextRequest) {
         PERSONA_IDS.map((id) =>
           (async () => {
             try {
-              for await (const delta of streamPersonaText(id, text)) {
+              for await (const delta of streamPersonaText(id, text, {
+                slides: slidesForStream ?? undefined,
+              })) {
                 buffers[id] += delta;
                 await safeWrite(controller, { persona: id, delta });
               }
