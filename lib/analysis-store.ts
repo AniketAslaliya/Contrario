@@ -158,7 +158,7 @@ export async function getAnalysisForUser(
   return mapRow(r);
 }
 
-/** Owner, or org member when the analysis belongs to that org (M14). */
+/** Owner, or org member when the analysis belongs to that org. */
 export async function getAnalysisIfAccessible(
   id: string,
   userId: string

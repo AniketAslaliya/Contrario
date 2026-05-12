@@ -7,7 +7,7 @@ const features = [
     icon: "⚡",
     title: "Parallel Streaming",
     description:
-      "All 3 personas respond simultaneously via Promise.all(). See tokens stream in real-time — no waiting.",
+      "All three personas run at the same time. Tokens show up live as each stream prints.",
   },
   {
     icon: "🗺️",
@@ -66,8 +66,7 @@ export function FeatureGrid() {
         <div className="text-center mb-16">
           <div className="pill mx-auto mb-8">Features</div>
           <h2 className="text-4xl sm:text-5xl lg:text-6xl max-w-3xl mx-auto">
-            Everything you need.{" "}
-            <span className="italic text-muted-word">Nothing</span> you don&apos;t.
+            One loop: upload, three reads, one conflict map.
           </h2>
         </div>
 

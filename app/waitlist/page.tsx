@@ -18,7 +18,7 @@ export default async function WaitlistPage({
       </h1>
       <p className="text-ink-500 text-center max-w-lg mb-10 leading-relaxed">
         Be first in line when we open full cohort tools. Share your referral
-        code after signing up — early access unlocks at 3 successful referrals.
+        code after signing up — early access opens after 3 successful referrals.
       </p>
       <WaitlistForm defaultRef={refDefault} />
 

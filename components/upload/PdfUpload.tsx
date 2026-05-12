@@ -127,7 +127,7 @@ export function PdfUpload({ onPitchReady }: { onPitchReady?: () => void }) {
           Max {mb}MB · parsed on the server ·{" "}
           {status === "authenticated"
             ? "Signed in — deck can be stored in Supabase Storage."
-            : "Guest — text only (no cloud storage)."}
+            : "No account needed to try — text only (no cloud storage)."}
         </p>
         <button
           type="button"

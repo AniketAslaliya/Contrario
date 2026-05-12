@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -514,18 +515,38 @@ export function AnalyzeWorkspace() {
         </p>
       ) : null}
 
-      <div className="grid md:grid-cols-3 gap-4 mt-4">
-        {PERSONA_IDS.map((id) => (
-          <PersonaStreamColumn
-            key={id}
-            id={id}
-            text={personaOutputs[id]}
-            status={personaStatus[id]}
-            error={err[id]}
-            score={scores[id]}
-          />
-        ))}
-      </div>
+      <motion.div
+        className="mt-10 md:mt-12"
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <div className="text-center mb-6 md:mb-8 max-w-2xl mx-auto px-2">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-ink-400 mb-2">
+            Parallel review
+          </p>
+          <h2 className="font-serif text-2xl md:text-[1.75rem] text-ink tracking-tight mb-2">
+            Three investor lenses
+          </h2>
+          <p className="text-sm text-ink-500 leading-relaxed">
+            Each persona scores and critiques from a different mandate — you get
+            contrast, not a single &ldquo;committee average.&rdquo;
+          </p>
+        </div>
+        <div className="grid md:grid-cols-3 gap-4 md:gap-5">
+          {PERSONA_IDS.map((id, i) => (
+            <PersonaStreamColumn
+              key={id}
+              id={id}
+              columnIndex={i}
+              text={personaOutputs[id]}
+              status={personaStatus[id]}
+              error={err[id]}
+              score={scores[id]}
+            />
+          ))}
+        </div>
+      </motion.div>
 
       {synthesisError ? (
         <p className="text-center text-sm text-persona-scale mt-8 max-w-lg mx-auto">

@@ -61,7 +61,7 @@ export function buildAnalyzeSseStream(params: {
       } catch (e) {
         send(controller, {
           fatal: true,
-          error: e instanceof Error ? e.message : "Gemini client error",
+          error: e instanceof Error ? e.message : "AI client error",
         });
         send(controller, { finished: true });
         controller.close();

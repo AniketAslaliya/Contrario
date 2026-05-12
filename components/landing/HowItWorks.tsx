@@ -7,25 +7,25 @@ const steps = [
     number: "01",
     title: "Upload",
     description:
-      "Drop your pitch deck PDF or paste your raw pitch text. We parse every slide, every claim, every number.",
+      "Drop a deck PDF or paste pitch text. We pull out slides, claims, and numbers from the extract.",
   },
   {
     number: "02",
     title: "Analyze",
     description:
-      "Three investor archetypes fire simultaneously via parallel AI API calls. No waiting. Streaming tokens arrive in real-time.",
+      "Three investor archetypes run at once via parallel AI streams. Output arrives token by token as it is generated.",
   },
   {
     number: "03",
     title: "Conflict",
     description:
-      "Our conflict engine maps where all three investors agree (your critical fixes) and where they diverge (your positioning choices).",
+      "See where all three agree (fix first) and where they split (a positioning choice, not a typo).",
   },
   {
     number: "04",
     title: "Iterate",
     description:
-      "Improve your deck, re-run. Track how your conflict map evolves over versions. Watch disagreement shrink where it matters.",
+      "Update the deck and run again. Compare how the conflict map moves between versions.",
   },
 ];
 
@@ -57,13 +57,13 @@ export function HowItWorks() {
         <div className="text-center mb-20">
           <div className="pill mx-auto mb-8">How It Works</div>
           <h2 className="text-4xl sm:text-5xl lg:text-6xl max-w-3xl mx-auto">
-            We handle{" "}
-            <span className="italic text-muted-word">everything</span> so you
-            don&apos;t have&nbsp;to.
+            Parse once.{" "}
+            <span className="italic text-muted-word">Three</span> readings. One
+            conflict map.
           </h2>
           <p className="text-ink-400 text-base sm:text-lg max-w-xl mx-auto mt-6 leading-relaxed">
-            From deck parsing to conflict mapping — upload once, get three
-            perspectives in seconds.
+            Upload or paste, run all three personas, then read where they line
+            up and where they don&apos;t.
           </p>
         </div>
 

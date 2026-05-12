@@ -12,8 +12,8 @@ export default function AnalyzePage() {
           Three lenses on your <span className="italic text-muted-word">pitch</span>
         </h1>
         <p className="text-ink-400 text-base leading-relaxed">
-          Upload a PDF or paste your narrative — we extract and stream three
-          investor personas simultaneously.
+          Upload a PDF or paste your narrative. We extract the text and run all
+          three personas in parallel.
         </p>
         <Link
           href="/"

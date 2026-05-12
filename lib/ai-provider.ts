@@ -1,6 +1,6 @@
 /**
  * Which LLM powers analysis when using `lib/persona-stream.ts` and other shared helpers.
- * For `/api/analyze`, the stream is **Gemini-only** via `lib/analyze-sse.ts` (requires GEMINI_API_KEY).
+ * For `/api/analyze`, streaming is implemented in `lib/analyze-sse.ts` (requires `GEMINI_API_KEY`).
  * Server-only — do not import from client components.
  */
 
@@ -24,22 +24,24 @@ export function assertActiveLlmConfigured(): void {
   const b = getAiBackend();
   if (b === "gemini") {
     if (!process.env.GEMINI_API_KEY?.trim()) {
-      throw new Error("GEMINI_API_KEY is required when AI_PROVIDER is gemini.");
+      throw new Error(
+        "The configured AI provider needs its API key in the environment (see deployment docs)."
+      );
     }
     return;
   }
   if (!process.env.ANTHROPIC_API_KEY?.trim()) {
     throw new Error(
-      "ANTHROPIC_API_KEY is required when using Anthropic, or set AI_PROVIDER=gemini + GEMINI_API_KEY."
+      "The configured AI provider needs its API key in the environment, or change AI_PROVIDER to match the keys you have set."
     );
   }
 }
 
-/** `/api/analyze` uses Gemini-only streaming — requires Google AI Studio key. */
+/** `/api/analyze` streaming route — requires the analysis API key in env. */
 export function assertGeminiConfiguredForAnalyze(): void {
   if (!process.env.GEMINI_API_KEY?.trim()) {
     throw new Error(
-      "GEMINI_API_KEY is required for analysis (Gemini 2.5 Flash streaming)."
+      "Analysis is not configured: add the server-side analysis API key to the environment (see deployment docs)."
     );
   }
 }

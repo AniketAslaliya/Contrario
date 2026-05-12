@@ -74,8 +74,8 @@ export default function LandingPage() {
               ))}
             </div>
           </div>
-          <p className="text-sm text-ink-600 mb-8 text-center font-medium">
-            Multi-lens pitch intelligence for founders
+          <p className="text-center text-[11px] uppercase tracking-[0.18em] text-ink-400 mb-8">
+            Multi-lens pitch reads for founders
           </p>
         </div>
 
@@ -97,9 +97,7 @@ export default function LandingPage() {
             mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
           }`}
         >
-          Upload your pitch deck and get simultaneous feedback from three
-          distinct investor archetypes — then see exactly where they{" "}
-          <span className="text-ink font-medium">clash</span>.
+          Upload your deck and get feedback from three investor archetypes at the same time — then see where they disagree.
         </p>
 
         {/* CTAs */}
@@ -387,8 +385,7 @@ export default function LandingPage() {
             <span className="italic text-persona-scale">real conflict</span>.
           </h2>
           <p className="text-ink-400 text-base sm:text-lg max-w-xl mx-auto leading-relaxed mb-10">
-            The best pitch decks are forged in disagreement. Let three investor
-            archetypes tear yours apart — simultaneously.
+            Disagreement is useful signal. Let three archetypes stress-test the same deck in parallel.
           </p>
           <Link
             href="/analyze"

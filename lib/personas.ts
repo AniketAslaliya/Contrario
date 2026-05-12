@@ -24,6 +24,18 @@ export function displayNameForPersona(id: PersonaId): string {
   }
 }
 
+/** Short subtitle for UI (cards, onboarding-adjacent surfaces). */
+export function personaTagline(id: PersonaId): string {
+  switch (id) {
+    case "scale-chaser":
+      return "TAM · moat · 10× trajectory";
+    case "conviction-buyer":
+      return "People · India · first-check grit";
+    case "reality-check":
+      return "Unit economics · GTM · traction";
+  }
+}
+
 const OUTPUT_CONTRACT = `
 You MUST format your entire response as Markdown using exactly these section headings (in order):
 ## Score
