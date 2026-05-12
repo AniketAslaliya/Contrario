@@ -2,6 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useCallback, useRef, useState } from "react";
+import { recordLastDeckAction } from "@/app/actions/profile";
 import { MAX_PDF_BYTES } from "@/lib/pdf-constants";
 import { extractPdfViaApiRoute } from "@/lib/parse-pdf-client";
 
@@ -52,6 +53,9 @@ export function PdfUpload({ onPitchReady }: { onPitchReady?: () => void }) {
       } catch {
         /* private mode / quota */
       }
+      if (status === "authenticated" && result.storedObjectPath) {
+        void recordLastDeckAction(result.storedObjectPath, file.name);
+      }
       onPitchReady?.();
 
       setSuccess({
@@ -62,7 +66,7 @@ export function PdfUpload({ onPitchReady }: { onPitchReady?: () => void }) {
     } finally {
       setBusy(false);
     }
-  }, [onPitchReady]);
+  }, [onPitchReady, status]);
 
   const onInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];

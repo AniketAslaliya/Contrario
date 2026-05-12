@@ -39,3 +39,24 @@ export async function storeAuthenticatedPdf(
     return undefined;
   }
 }
+
+export async function getSignedDeckDownloadUrl(
+  objectPath: string,
+  expiresSec = 120
+): Promise<string | null> {
+  if (!isSupabaseConfigured()) return null;
+  try {
+    const sb = getSupabaseAdmin();
+    const { data, error } = await sb.storage
+      .from(bucketName())
+      .createSignedUrl(objectPath, expiresSec);
+    if (error || !data?.signedUrl) {
+      console.error("[deck-storage] signedUrl:", error?.message);
+      return null;
+    }
+    return data.signedUrl;
+  } catch (e) {
+    console.error("[deck-storage]", e);
+    return null;
+  }
+}

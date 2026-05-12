@@ -57,7 +57,7 @@ export function RolePicker({ pendingRole, onPick }: Props) {
             disabled={pendingRole !== null}
             aria-busy={loading}
             onClick={() => onPick(row.id)}
-            className="text-left rounded-2xl border border-cream-400 bg-cream-100/80 px-4 py-4 transition-all duration-300 hover:border-ink/20 hover:bg-cream-50 disabled:opacity-60 disabled:pointer-events-none"
+            className="text-left rounded-2xl border border-cream-400/90 bg-gradient-to-br from-cream-100/95 to-cream-100/70 px-4 py-4 transition-all duration-300 hover:border-persona-conviction/35 hover:shadow-[0_8px_30px_-12px_rgba(28,25,23,0.12)] hover:bg-cream-50/90 disabled:opacity-60 disabled:pointer-events-none"
           >
             <div className="flex items-start gap-3">
               <span className="text-xl leading-none">{row.emoji}</span>
