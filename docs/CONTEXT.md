@@ -45,8 +45,8 @@ The conflict map IS the product. That's the insight no competitor has.
 | README | ✅ Done | /README.md |
 | ROADMAP | ✅ Done | /docs/ROADMAP.md |
 | Validation Script | ✅ Done | /scripts/validate.js |
-| M01 Landing Page | 🔲 Not started | |
-| M02 Auth | 🔲 Not started | |
+| M01 Landing Page | ✅ Done | Hero + demo preview + features + responsive |
+| M02 Auth | ✅ Done | NextAuth.js (Google OAuth + Email magic link) |
 | M03 Onboarding | 🔲 Not started | |
 | M04 PDF Upload | 🔲 Not started | |
 | M05 Text Paste | 🔲 Not started | |
@@ -137,6 +137,15 @@ SUPABASE_SERVICE_ROLE_KEY=
 - **Decisions made:** Vercel over HuggingFace, parallel API calls, dark premium design, 5 user types
 - **Next session should start with:** M01 (Landing page) + M02 (Auth setup)
 - **Blockers:** None
+
+### Session 002 — May 12, 2026
+- **Done:** M01 (Landing/Hero page), M02 (Authentication)
+- **M01 includes:** Hero with tagline + animated persona demo preview + How It Works + Feature Grid + bottom CTA + dark premium design + mobile responsive + Navbar with glassmorphism + Footer
+- **M02 includes:** NextAuth.js setup, Google OAuth provider, Email magic link, auth page UI, verify page, session provider, JWT strategy, /auth route
+- **Also done:** Next.js 14 project initialized, Tailwind CSS dark theme configured, folder structure set up, PRD.md written (was duplicate of CONTEXT), .env.example created, placeholder /analyze page
+- **Decisions made:** framer-motion + lucide-react added for UI, JWT session strategy over database sessions, auth redirects to /onboarding
+- **Next session should start with:** M03 (Onboarding) + M04 (PDF Upload) + M05 (Text Paste) + M06 (Analysis Engine)
+- **Blockers:** Need GOOGLE_CLIENT_ID/SECRET, NEXTAUTH_SECRET in .env.local for auth to work end-to-end
 
 ---
 
